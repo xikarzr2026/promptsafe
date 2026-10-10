@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="light" />
+<meta name="description" content="PromptSafe — a 100% client-side privacy scrubber that removes API keys, IPs, emails and credentials from text before you paste it into an AI chat. No database, nothing seen, nothing saved." />
+<title>PromptSafe — Client-Side Secret Scrubber</title>
+<!-- Inline SVG favicon: no extra network request. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%236366f1'/%3E%3Cstop offset='1' stop-color='%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='url(%23g)' d='M16 2 5 7v9c0 7 4.7 12.3 11 14 6.3-1.7 11-7 11-14V7z'/%3E%3Cpath d='M11 15.6l3.2 3.2 6.4-7.3' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+
+<!-- Tailwind (Play CDN) — the ONLY external resource this app loads. -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!--
+  Offline safety net.
+  The CDN <script> injects its stylesheet into <head> *after* this block,
+  so when Tailwind is present its utilities win; when the CDN is blocked the
+  rules below still give PromptSafe a usable light layout. All *logic* is inline,
+  so the app is fully functional with the network unplugged after first load.
+-->
+<style>
+  :root {
+    color-scheme: light;
+    --ps-ink: #0f172a;
+    --ps-body: #475569;
+    --ps-muted: #94a3b8;
+    --ps-line: #e2e8f0;
+    --ps-surface: #ffffff;
+    --ps-canvas: #f7f8fc;
+    --ps-brand: #6366f1;
+    --ps-brand-2: #8b5cf6;
+  }
+  html, body { margin: 0; color: var(--ps-body);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, sans-serif; }
+  body {
+    background:
+      radial-gradient(1100px 520px at 50% -12%, #e0e7ff 0%, rgba(224,231,255,0) 62%),
+      radial-gradient(900px 500px at 92% 4%, #ede9fe 0%, rgba(237,233,254,0) 55%),
+      var(--ps-canvas);
+    background-attachment: fixed;
+  }
+  pre, textarea, code, .mono, input { font-family: ui-monospace, SFMono-Regular, "Cascadia Code", Consolas, "Liberation Mono", monospace; }
+
+  .ps-cols { display: grid; gap: 1rem; grid-template-columns: 1fr; align-items: stretch; }
+  @media (min-width: 1024px) { .ps-cols { grid-template-columns: 1fr 1fr; } }
+  .ps-card { background: var(--ps-surface); border: 1px solid var(--ps-line);
+    border-radius: 1rem; padding: 1rem; min-width: 0;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 8px 24px -18px rgba(15, 23, 42, .18); }
+  .ps-panel { min-height: 46vh; }
+  .ps-scroll { overflow: auto; }
+  .ps-wrap { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+
+  .ps-btn { display: inline-flex; align-items: center; gap: .4rem; cursor: pointer; border-radius: .625rem;
+    border: 1px solid var(--ps-line); background: #fff; color: #334155;
+    padding: .5rem .85rem; font-size: .8rem; font-weight: 600; transition: all .15s ease;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .04); }
+  .ps-btn:hover { background: #f8fafc; border-color: #cbd5e1; color: var(--ps-ink); }
+  .ps-btn:active { transform: translateY(1px); }
+  .ps-btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+  .ps-btn-primary { background: linear-gradient(135deg, var(--ps-brand), var(--ps-brand-2));
+    border-color: transparent; color: #fff; box-shadow: 0 8px 22px -8px rgba(99, 102, 241, .75); }
+  .ps-btn-primary:hover { filter: brightness(1.07); color: #fff; background: linear-gradient(135deg, var(--ps-brand), var(--ps-brand-2)); }
+  .ps-btn-copied { background: linear-gradient(135deg, #10b981, #059669) !important;
+    box-shadow: 0 8px 22px -8px rgba(16, 185, 129, .75) !important; }
+
+  .ps-focus:focus-visible, .ps-btn:focus-visible, textarea:focus-visible, input:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--ps-brand); outline-offset: 2px; }
+
+  .ps-scroll::-webkit-scrollbar { width: 10px; height: 10px; }
+  .ps-scroll::-webkit-scrollbar-track { background: transparent; }
+  .ps-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px;
+    border: 2px solid transparent; background-clip: content-box; }
+  .ps-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; background-clip: content-box; }
+
+  /* ── Disclaimer banner ── */
+  .ps-disclaimer { position: relative; overflow: hidden; border-radius: 1rem;
+    border: 1px solid #c7d2fe; background: linear-gradient(135deg, #eef2ff 0%, #f5f3ff 45%, #ffffff 100%);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 12px 30px -22px rgba(79, 70, 229, .5); }
+  .ps-disclaimer::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    background: linear-gradient(180deg, var(--ps-brand), var(--ps-brand-2)); }
+
+  /* ── Redaction highlights (light-mode) ── */
+  .hl { border-radius: .3rem; padding: .03em .34em; font-weight: 700; white-space: nowrap; }
+  .hl-keys    { background: #fef3c7; color: #92400e; box-shadow: inset 0 0 0 1px #fcd34d; }
+  .hl-dburl   { background: #fed7aa; color: #7c2d12; box-shadow: inset 0 0 0 1px #fb923c; }
+  .hl-network { background: #e0f2fe; color: #075985; box-shadow: inset 0 0 0 1px #7dd3fc; }
+  .hl-email   { background: #ede9fe; color: #5b21b6; box-shadow: inset 0 0 0 1px #c4b5fd; }
+  .hl-creds   { background: #ffe4e6; color: #9f1239; box-shadow: inset 0 0 0 1px #fda4af; }
+  .hl-phone   { background: #d1fae5; color: #065f46; box-shadow: inset 0 0 0 1px #6ee7b7; }
+  .hl-custom  { background: #fae8ff; color: #86198f; box-shadow: inset 0 0 0 1px #f0abfc; }
+
+  .ps-switch { position: relative; width: 2.1rem; height: 1.15rem; border-radius: 999px; flex: none;
+    background: #e2e8f0; transition: background .18s ease, box-shadow .18s ease;
+    box-shadow: inset 0 0 0 1px #cbd5e1; }
+  .ps-switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: .85rem; height: .85rem;
+    border-radius: 999px; background: #fff; box-shadow: 0 1px 2px rgba(15, 23, 42, .3);
+    transition: transform .18s ease; }
+  input:checked + .ps-switch { background: linear-gradient(135deg, var(--ps-brand), var(--ps-brand-2));
+    box-shadow: inset 0 0 0 1px rgba(99, 102, 241, .9); }
+  input:checked + .ps-switch::after { transform: translateX(.95rem); }
+
+  .ps-modal[hidden] { display: none; }
+  .ps-modal { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+  .ps-backdrop { position: absolute; inset: 0; background: rgba(15, 23, 42, .38); backdrop-filter: blur(6px); }
+  .ps-dialog { position: relative; width: 100%; max-width: 52rem; max-height: 88vh; overflow: hidden;
+    display: flex; flex-direction: column; background: #fff; border: 1px solid var(--ps-line);
+    border-radius: 1.1rem; box-shadow: 0 30px 80px -26px rgba(15, 23, 42, .5); }
+
+  /* Code panes stay dark: maximum contrast for source review. */
+  .ps-code { background: #0f172a; border-radius: .6rem; color: #c7d2fe; }
+  .ps-code-inline { background: #f1f5f9; color: #334155; border-radius: .35rem; padding: .05rem .35rem; }
+
+  details > summary { cursor: pointer; list-style: none; }
+  details > summary::-webkit-details-marker { display: none; }
+  details[open] > summary .chev { transform: rotate(90deg); }
+  .chev { transition: transform .18s ease; display: inline-block; color: var(--ps-brand); }
+</style>
+</head>
+
+<body class="h-full antialiased selection:bg-indigo-200">
+
+<!-- ══════════════════════════ HEADER ══════════════════════════ -->
+<header class="sticky top-0 z-30 border-b border-slate-200/80 bg-white/80 backdrop-blur-md">
+  <div class="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:px-6">
+    <div class="flex items-center gap-3">
+      <div class="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 shadow-lg shadow-indigo-500/25">
+        <svg class="h-5 w-5 text-white" viewBox="0 0 32 32" aria-hidden="true">
+          <path fill="currentColor" d="M16 2 5 7v9c0 7 4.7 12.3 11 14 6.3-1.7 11-7 11-14V7z"/>
+          <path d="M11 15.6l3.2 3.2 6.4-7.3" fill="none" stroke="#4338ca" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="leading-tight">
+        <h1 class="text-lg font-bold tracking-tight text-slate-900">PromptSafe</h1>
+        <p class="text-[11px] text-slate-500">scrub secrets before you paste</p>
+      </div>
+    </div>
+
+    <button id="btn-trust" type="button"
+      class="ps-wrap rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[11px] font-semibold text-emerald-700 shadow-[0_2px_14px_-4px_rgba(16,185,129,.55)] transition hover:bg-emerald-100 sm:text-xs"
+      title="Open the trust & verification panel">
+      <span class="relative flex h-2 w-2" aria-hidden="true">
+        <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+        <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+      </span>
+      🔒 100% Client-Side • Zero Data Leaves Your Browser
+    </button>
+
+    <div class="ml-auto ps-wrap">
+      <button id="btn-source" type="button" class="ps-btn"><span aria-hidden="true">{ }</span> GitHub Source</button>
+      <button id="btn-sample" type="button" class="ps-btn">📄 Load Sample Log</button>
+      <button id="btn-clear"  type="button" class="ps-btn">✕ Clear All</button>
+    </div>
+  </div>
+</header>
+
+<!-- ══════════════════════════ MAIN ══════════════════════════ -->
+<main class="mx-auto max-w-7xl px-4 py-5 sm:px-6">
+
+  <!-- ── The disclaimer ── -->
+  <section class="ps-disclaimer mb-4 flex flex-col gap-3 pl-5 pr-5 py-4 sm:flex-row sm:items-start sm:gap-4 sm:pl-6 sm:pr-6">
+    <div class="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-white ring-1 ring-indigo-200 shadow-sm">
+      <svg class="h-5 w-5 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 3 4 6.5v5.2c0 4.6 3.2 8.4 8 9.8 4.8-1.4 8-5.2 8-9.8V6.5z"/>
+        <path d="m8.8 12.1 2.2 2.2 4.4-4.6"/>
+      </svg>
+    </div>
+    <div class="min-w-0">
+      <p class="text-[15px] font-bold tracking-tight text-slate-900 sm:text-base">
+        No database. Nothing is seen. Nothing is saved.
+      </p>
+      <p class="mt-1 max-w-3xl text-[13.5px] leading-relaxed text-slate-600 sm:text-sm">
+        PromptSafe has <b class="font-semibold text-slate-700">no server, no database, no cookies, no account and no analytics</b>.
+        Everything you paste is processed entirely inside this browser tab, on your own machine — not one byte of your text is
+        transmitted, logged, or stored anywhere. There is no copy of it on any website, because there is no website behind this page
+        to hold one. Close the tab and every trace of it is gone for good. You don't have to take our word for it:
+        press <kbd class="rounded border border-slate-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-slate-600">F12</kbd>,
+        open the <b class="font-semibold text-slate-700">Network</b> tab, and watch it stay completely empty while you scrub.
+      </p>
+    </div>
+  </section>
+
+  <div class="ps-cols">
+
+    <!-- LEFT: raw input -->
+    <section class="ps-card flex flex-col">
+      <div class="mb-2 flex items-center justify-between gap-3">
+        <h2 class="flex items-center gap-2 text-sm font-semibold text-slate-800">
+          <span class="h-2 w-2 rounded-full bg-rose-400"></span> Raw Input
+        </h2>
+        <span id="in-stats" class="mono text-[11px] text-slate-500">0 chars · 0 words · 0 lines</span>
+      </div>
+      <textarea id="input" spellcheck="false" autocapitalize="off" autocomplete="off" wrap="off"
+        class="ps-panel ps-scroll ps-focus w-full flex-1 resize-none rounded-xl border border-slate-200 bg-slate-50/70 p-3 text-[12.5px] leading-relaxed text-slate-800 placeholder-slate-400 transition hover:border-slate-300 focus:bg-white"
+        placeholder="Paste raw logs, code, config files, or prompts here..."></textarea>
+      <p class="mt-2 text-[11px] text-slate-500">Nothing is sent anywhere. Every byte stays in this tab.</p>
+    </section>
+
+    <!-- RIGHT: sanitized output -->
+    <section class="ps-card flex flex-col">
+      <div class="mb-2 flex flex-wrap items-center justify-between gap-3">
+        <h2 class="flex items-center gap-2 text-sm font-semibold text-slate-800">
+          <span class="h-2 w-2 rounded-full bg-emerald-400"></span> Sanitized Output
+        </h2>
+        <div class="ps-wrap">
+          <span id="out-stats" class="mono text-[11px] text-slate-500">0 redactions</span>
+          <button id="btn-copy" type="button" class="ps-btn ps-btn-primary">📋 Copy Safe Text</button>
+        </div>
+      </div>
+      <pre id="output" aria-live="polite"
+        class="ps-panel ps-scroll w-full flex-1 whitespace-pre-wrap break-words rounded-xl border border-slate-200 bg-slate-50/70 p-3 text-[12.5px] leading-relaxed text-slate-800"></pre>
+      <p id="out-hint" class="mt-2 text-[11px] text-slate-500">Redactions are highlighted in colour — the copied text contains the plain <span class="mono">[REDACTED_*]</span> tokens.</p>
+    </section>
+
+  </div>
+
+  <!-- ── Action bar: strictness toggles ── -->
+  <section class="ps-card mt-4">
+    <div class="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+      <h2 class="text-sm font-semibold text-slate-800">Strictness</h2>
+      <span id="rule-count" class="mono text-[11px] text-slate-500">0 / 0 rules active</span>
+      <div class="ml-auto ps-wrap">
+        <button id="btn-all"   type="button" class="ps-btn">Enable all</button>
+        <button id="btn-none"  type="button" class="ps-btn">Disable all</button>
+      </div>
+    </div>
+
+    <div id="toggles" class="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3"></div>
+
+    <div id="custom-row" class="mt-3 hidden rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+      <div class="grid gap-3 sm:grid-cols-[1fr_14rem]">
+        <label class="block">
+          <span class="mb-1 block text-[11px] font-semibold text-slate-500">Custom pattern (JavaScript regular expression)</span>
+          <input id="custom-re" type="text" spellcheck="false"
+            class="ps-focus mono w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-800 placeholder-slate-400"
+            placeholder="e.g.  ACME-[0-9]{6}   or   \bsession=[A-Za-z0-9_-]{8,}" />
+        </label>
+        <label class="block">
+          <span class="mb-1 block text-[11px] font-semibold text-slate-500">Replacement token</span>
+          <input id="custom-token" type="text" spellcheck="false" value="[REDACTED_CUSTOM]"
+            class="ps-focus mono w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-800" />
+        </label>
+      </div>
+      <p id="custom-msg" class="mt-2 text-[11px] text-slate-500">Applied live with the <span class="mono">g</span> flag. Invalid patterns are ignored (never thrown).</p>
+    </div>
+  </section>
+
+  <!-- ── Report ── -->
+  <section id="report-card" class="ps-card mt-4 hidden">
+    <h2 class="mb-2 text-sm font-semibold text-slate-800">Redaction Report</h2>
+    <div id="report" class="ps-wrap"></div>
+  </section>
+
+  <footer class="mt-6 rounded-xl border border-slate-200 bg-white/70 px-4 py-3 text-[11px] leading-relaxed text-slate-500">
+    <p><b class="font-semibold text-slate-600">PromptSafe runs entirely in your browser.</b> No backend, no database, no cookies,
+       no telemetry, no analytics — nothing you paste is ever seen or saved by this page.
+       The only network request it makes is the Tailwind stylesheet at load; scrubbing itself sends nothing at all.</p>
+  </footer>
+</main>
+
+<!-- ══════════════════════════ TRUST MODAL ══════════════════════════ -->
+<div id="modal-trust" class="ps-modal" hidden role="dialog" aria-modal="true" aria-labelledby="trust-title">
+  <div class="ps-backdrop" data-close></div>
+  <div class="ps-dialog">
+    <div class="flex items-center gap-3 border-b border-slate-200 px-5 py-4">
+      <h2 id="trust-title" class="text-base font-bold text-slate-900">How do you know we aren't stealing your data?</h2>
+      <button class="ps-btn ml-auto" data-close type="button" aria-label="Close">✕</button>
+    </div>
+    <div class="ps-scroll px-5 py-4 text-sm leading-relaxed text-slate-600">
+
+      <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+        <p class="font-semibold text-emerald-800">Plain-English guarantee</p>
+        <p class="mt-1.5 text-emerald-900/90">This web app has <b>no backend server, no cookies, no tracking pixels, and no database</b>.
+        Nothing you type here is seen or saved by this website. You can verify that yourself by opening your browser's Developer Tools
+        <span class="mono ps-code-inline text-xs">F12</span> →
+        <b>Network</b> tab, and noting that <b>0 requests are sent when you scrub text</b>.
+        Type, paste, toggle rules — the request list stays empty. The app is one HTML file; there is nowhere for your data to go.</p>
+      </div>
+
+      <ol class="mt-4 list-decimal space-y-2 pl-5">
+        <li><b>Open DevTools now</b> (<span class="mono ps-code-inline text-xs">F12</span>), click the <b>Network</b> tab, and clear it.</li>
+        <li><b>Paste a secret</b> into the left panel. Watch the output redact instantly.</li>
+        <li><b>Look at Network.</b> Nothing fires. Repeat with the Console tab open — no errors, no beacons.</li>
+        <li><b>Disconnect the internet</b> (or choose "Offline" in the Network tab's throttling menu) and keep scrubbing. It still works.</li>
+        <li><b>Read the code</b> below — it is not a screenshot, it is the exact function objects currently loaded in this page.</li>
+      </ol>
+
+      <details class="mt-4 rounded-xl border border-slate-200 bg-slate-50" open>
+        <summary class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-800">
+          <span class="chev">▶</span> The live sanitization engine (running in this tab)
+        </summary>
+        <div class="border-t border-slate-200 p-3">
+          <p class="mb-2 text-[11px] text-slate-500">
+            Generated via <span class="mono ps-code-inline">Function.prototype.toString()</span> on the real functions — pulled from memory, not from a file.
+          </p>
+          <pre id="code-trust" class="ps-scroll ps-code mono max-h-80 overflow-auto p-3 text-[11.5px] leading-relaxed"></pre>
+        </div>
+      </details>
+
+      <details class="mt-3 rounded-xl border border-slate-200 bg-slate-50">
+        <summary class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-800">
+          <span class="chev">▶</span> What PromptSafe does <i>not</i> do
+        </summary>
+        <ul class="list-disc space-y-1.5 border-t border-slate-200 px-4 py-3 pl-9 text-[13px]">
+          <li>It does not send your text, or a hash of it, anywhere — there is no <span class="mono ps-code-inline">fetch()</span>, <span class="mono ps-code-inline">XMLHttpRequest</span>, <span class="mono ps-code-inline">WebSocket</span>, <span class="mono ps-code-inline">sendBeacon</span> or image pixel in the logic.</li>
+          <li>It does not write to <span class="mono ps-code-inline">localStorage</span>, <span class="mono ps-code-inline">sessionStorage</span>, IndexedDB or cookies. Nothing is saved, anywhere.</li>
+          <li>It does not log your input to the console.</li>
+          <li>It does not auto-load anything from a URL you paste.</li>
+          <li>It cannot guarantee <i>complete</i> detection — regex is a net, not a proof. Always eyeball the output before pasting.</li>
+        </ul>
+      </details>
+
+      <div class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+        <p class="font-semibold text-slate-800">Self-host it in 30 seconds</p>
+        <p class="mt-1.5 text-[13px]">Don't trust us — trust your own copy. Clone the repo and open the file locally:</p>
+        <pre class="mono ps-scroll ps-code mt-2 overflow-auto p-3 text-[11.5px]">git clone https://github.com/xikarzr2026/promptsafe.git
+cd promptsafe
+# just open it — there is no build step
+start index.html        # Windows
+open index.html         # macOS</pre>
+        <a href="https://github.com/xikarzr2026/promptsafe" target="_blank" rel="noopener noreferrer"
+           class="mt-3 inline-flex text-xs font-semibold text-indigo-600 hover:text-indigo-500 underline underline-offset-2">
+          github.com/xikarzr2026/promptsafe ↗</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ SOURCE MODAL ══════════════════════════ -->
+<div id="modal-source" class="ps-modal" hidden role="dialog" aria-modal="true" aria-labelledby="source-title">
+  <div class="ps-backdrop" data-close></div>
+  <div class="ps-dialog">
+    <div class="flex flex-wrap items-center gap-3 border-b border-slate-200 px-5 py-4">
+      <h2 id="source-title" class="text-base font-bold text-slate-900">PromptSafe Source</h2>
+      <span class="rounded-full border border-indigo-100 bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-700">single file · no build step · MIT</span>
+      <button class="ps-btn ml-auto" data-close type="button" aria-label="Close">✕</button>
+    </div>
+    <div class="ps-scroll px-5 py-4 text-sm text-slate-600">
+      <p class="text-[13px] leading-relaxed">
+        Everything below is the sanitization engine actually loaded in this tab, dumped at runtime with
+        <span class="mono ps-code-inline text-xs">Function.prototype.toString()</span>.
+        Read it, diff it, fork it. The complete source lives at
+        <a href="https://github.com/xikarzr2026/promptsafe" target="_blank" rel="noopener noreferrer"
+           class="font-semibold text-indigo-600 underline underline-offset-2 hover:text-indigo-500">github.com/xikarzr2026/promptsafe</a>.
+      </p>
+      <pre id="code-source" class="ps-scroll ps-code mono mt-3 max-h-[60vh] overflow-auto p-3 text-[11.5px] leading-relaxed"></pre>
+      <div class="mt-4 flex flex-wrap items-center gap-3">
+        <a href="https://github.com/xikarzr2026/promptsafe" target="_blank" rel="noopener noreferrer"
+           class="ps-btn">↗ github.com/xikarzr2026/promptsafe</a>
+        <span class="text-[11px] text-slate-500">Fork it, self-host it, or open <span class="mono">index.html</span> straight off your disk.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ SANITIZATION ENGINE ══════════════════════
+     Everything below runs locally. It must never call any network API.
+     ═══════════════════════════════════════════════════════════════ -->
+<script>
+"use strict";
+
+/* ────────────────────────────────────────────────────────────────
+   RULES — the whole engine is this array.
+
+   Each rule:
+     id       unique key, also the CSS suffix for its highlight colour
+     label    human name shown on its toggle
+     token    what a match is replaced with
+     patterns array of RegExp (global flag required)
+     filter   optional (match) => boolean, veto a candidate match
+     build    optional (match) => {start, end, text}, to redact only
+              PART of a match (e.g. keep `password=`, mask the value)
+   ──────────────────────────────────────────────────────────────── */
+const PS_RULES = [
+  {
+    id: "keys",
+    label: "Mask API Keys & Secrets",
+    token: "[REDACTED_API_KEY]",
+    patterns: [
+      // PEM private keys (multi-line, must run before line-oriented patterns)
+      /-----BEGIN[^-]{0,40}PRIVATE KEY-----[\s\S]*?-----END[^-]{0,40}PRIVATE KEY-----/g,
+      // OpenAI  sk-… / sk-proj-… / sk-ant-…
+      /\bsk-(?:proj-|live-|test-|ant-)?[A-Za-z0-9_-]{16,}\b/g,
+      /\bsk_[A-Za-z0-9]{16,}\b/g,
+      // AWS access key IDs
+      /\b(?:AKIA|ASIA|ABIA|ACCA)[0-9A-Z]{16}\b/g,
+      // Google API keys
+      /\bAIza[0-9A-Za-z_-]{35}\b/g,
+      // GitHub tokens
+      /\bgh[pousr]_[A-Za-z0-9]{30,}\b/g,
+      // Slack tokens
+      /\bxox[baprs]-[A-Za-z0-9-]{10,}\b/g,
+      // Stripe keys
+      /\b(?:sk|pk|rk)_(?:live|test)_[A-Za-z0-9]{16,}\b/g,
+      // JSON Web Tokens
+      /\beyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\b/g,
+      // HTTP auth headers
+      /\b(?:Bearer|Basic)\s+[A-Za-z0-9._~+/=-]{12,}/g
+    ]
+  },
+  {
+    id: "dburl",
+    label: "Mask Connection Strings",
+    token: "[REDACTED_CONNECTION_STRING]",
+    patterns: [
+      // Service URIs carry their credentials inline — user:pass@host
+      /\b(?:postgres(?:ql)?|mysql|mariadb|mongodb(?:\+srv)?|redis|amqp|mssql|smtp|ftp|sftp|jdbc:[a-z]+):\/\/[^\s"'`]+/gi
+    ]
+  },
+  {
+    id: "network",
+    label: "Mask IPv4 / IPv6",
+    token: "[REDACTED_IP]",
+    patterns: [
+      // IPv4, optionally with a CIDR suffix or :port
+      /\b(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(?:\/\d{1,2})?(?::\d{1,5})?\b/g,
+      // IPv6 — canonical form, full and compressed
+      /(?<![:.\w])(?:(?:[A-Fa-f0-9]{1,4}:){7}[A-Fa-f0-9]{1,4}|(?:[A-Fa-f0-9]{1,4}:){1,7}:|(?:[A-Fa-f0-9]{1,4}:){1,6}:[A-Fa-f0-9]{1,4}|(?:[A-Fa-f0-9]{1,4}:){1,5}(?::[A-Fa-f0-9]{1,4}){1,2}|(?:[A-Fa-f0-9]{1,4}:){1,4}(?::[A-Fa-f0-9]{1,4}){1,3}|(?:[A-Fa-f0-9]{1,4}:){1,3}(?::[A-Fa-f0-9]{1,4}){1,4}|(?:[A-Fa-f0-9]{1,4}:){1,2}(?::[A-Fa-f0-9]{1,4}){1,5}|[A-Fa-f0-9]{1,4}:(?::[A-Fa-f0-9]{1,4}){1,6}|:(?:(?::[A-Fa-f0-9]{1,4}){1,7}|:))(?![:\w])/g,
+      // Internal hostnames + localhost, with optional port
+      /\b(?:localhost|[\w-]+\.(?:local|internal|lan|corp|home|intranet))(?::\d{1,5})?\b/gi
+    ]
+  },
+  {
+    id: "email",
+    label: "Mask Emails",
+    token: "[REDACTED_EMAIL]",
+    patterns: [
+      /[A-Za-z0-9._%+-]+@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)*\.[A-Za-z]{2,24}\b/g
+    ]
+  },
+  {
+    id: "phone",
+    label: "Mask Phone Numbers",
+    token: "[REDACTED_PHONE]",
+    patterns: [
+      /\+\d{1,3}[\s.-]?(?:\(\d{1,4}\)[\s.-]?)?\d[\d\s.-]{5,}\d/g,   // international, leading +
+      /\(\d{3}\)\s*\d{3}[-.\s]?\d{4}/g,                             // (555) 123-4567
+      /\b\d{3}[-.]\d{3}[-.]\d{4}\b/g                                // 555-123-4567
+    ],
+    // Require 10–15 digits so IDs, years and timestamps are not swept up.
+    filter: function (match) {
+      const digits = match.replace(/\D/g, "").length;
+      return digits >= 10 && digits <= 15;
+    }
+  },
+  {
+    id: "creds",
+    label: "Mask Passwords & Tokens",
+    token: "[REDACTED_SECRET]",
+    patterns: [
+      /(\b(?:password|passwd|pwd|passphrase|secret|token|api[_-]?key|apikey|access[_-]?key|client[_-]?secret|auth[_-]?token|private[_-]?key)\b["']?\s*(?:=|:|=>|:=)\s*)(["']?)([^\s,;"'`]+)\2/gi
+    ],
+    // Keep the key name and quotes readable, redact only the value:
+    //   password = "hunter2"   ->   password = "[REDACTED_SECRET]"
+    build: function (match) {
+      return {
+        start: match.index + match[1].length + match[2].length,
+        end:   match.index + match[1].length + match[2].length + match[3].length,
+        text:  "[REDACTED_SECRET]"
+      };
+    }
+  },
+  {
+    id: "custom",
+    label: "Custom Masking Regex",
+    token: "[REDACTED_CUSTOM]",
+    patterns: []   // filled in live from the custom-regex input
+  }
+];
+
+/* ── Find every redaction range in `text` for the enabled rule ids. ── */
+function PS_scan(text, enabledIds) {
+  const ranges = [];
+
+  for (let r = 0; r < PS_RULES.length; r++) {
+    const rule = PS_RULES[r];
+    if (!enabledIds.has(rule.id)) continue;
+
+    for (let p = 0; p < rule.patterns.length; p++) {
+      const re = rule.patterns[p];
+      if (!re || !re.source) continue;
+
+      // Always iterate safely, even if the author forgot the g flag.
+      let scanner = re;
+      if (!re.global) scanner = new RegExp(re.source, re.flags + "g");
+      scanner.lastIndex = 0;
+
+      let m;
+      while ((m = scanner.exec(text)) !== null) {
+        if (m[0].length === 0) { scanner.lastIndex++; continue; }   // zero-width guard
+        if (rule.filter && !rule.filter(m[0], m)) continue;
+
+        let start = m.index;
+        let end   = m.index + m[0].length;
+        let text_ = rule.token;
+
+        if (rule.build) {
+          const b = rule.build(m);
+          if (!b || b.end <= b.start) continue;
+          start = b.start; end = b.end; text_ = b.text || rule.token;
+        }
+
+        ranges.push({ start: start, end: end, text: text_, rule: rule.id });
+      }
+    }
+  }
+
+  // Sort by position (longer match wins a tie) …
+  ranges.sort(function (a, b) {
+    return a.start - b.start || (b.end - b.start) - (a.end - a.start);
+  });
+
+  // … then drop anything overlapping an already-accepted range.
+  const kept = [];
+  let lastEnd = -1;
+  for (let i = 0; i < ranges.length; i++) {
+    if (ranges[i].start >= lastEnd) {
+      kept.push(ranges[i]);
+      lastEnd = ranges[i].end;
+    }
+  }
+  return kept;
+}
+
+/* ── Apply ranges: returns the plain text plus highlighted HTML. ── */
+function PS_apply(text, ranges) {
+  let plain = "";
+  const html = [];
+  let cursor = 0;
+
+  for (let i = 0; i < ranges.length; i++) {
+    const r = ranges[i];
+    const pre = text.slice(cursor, r.start);
+    plain += pre;
+    html.push(PS_esc(pre));
+
+    plain += r.text;
+    html.push('<mark class="hl hl-' + r.rule + '">' + PS_esc(r.text) + "</mark>");
+    cursor = r.end;
+  }
+
+  const tail = text.slice(cursor);
+  plain += tail;
+  html.push(PS_esc(tail));
+
+  return { plain: plain, html: html.join("") };
+}
+
+/* ── Minimal HTML escaping for everything we render. ── */
+function PS_esc(s) {
+  return s.replace(/[&<>"']/g, function (c) {
+    return c === "&" ? "&amp;" : c === "<" ? "&lt;" : c === ">" ? "&gt;"
+         : c === '"' ? "&quot;" : "&#39;";
+  });
+}
+
+/* ── Dump the LIVE engine as readable source (used by both modals). ── */
+function PS_sourceDump() {
+  const out = [];
+  out.push("// ── PromptSafe sanitization engine ─────────────────────────────");
+  out.push("// This text is generated at runtime from the function objects");
+  out.push("// currently executing in your browser. It is not a copy.");
+  out.push("");
+  out.push("const RULES = [");
+
+  PS_RULES.forEach(function (r) {
+    out.push("  {");
+    out.push("    id: " + JSON.stringify(r.id) + ",");
+    out.push("    label: " + JSON.stringify(r.label) + ",");
+    out.push("    token: " + JSON.stringify(r.token) + ",");
+    out.push("    patterns: [");
+    r.patterns.forEach(function (p) {
+      out.push("      /" + p.source + "/" + p.flags + ",");
+    });
+    out.push("    ],");
+    if (r.filter) out.push("    filter: " + r.filter.toString() + ",");
+    if (r.build)  out.push("    build: " + r.build.toString() + ",");
+    out.push("  },");
+  });
+
+  out.push("];");
+  out.push("");
+  out.push(PS_scan.toString());
+  out.push("");
+  out.push(PS_apply.toString());
+  out.push("");
+  out.push(PS_esc.toString());
+  return out.join("\n");
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   UI WIRING — below here is presentation only.
+   ══════════════════════════════════════════════════════════════════ */
+(function () {
+  const $input   = document.getElementById("input");
+  const $output  = document.getElementById("output");
+  const $inStats = document.getElementById("in-stats");
+  const $outStats = document.getElementById("out-stats");
+  const $copy    = document.getElementById("btn-copy");
+  const $report  = document.getElementById("report");
+  const $reportCard = document.getElementById("report-card");
+  const $toggles = document.getElementById("toggles");
+  const $ruleCount = document.getElementById("rule-count");
+  const $customRow = document.getElementById("custom-row");
+  const $customRe  = document.getElementById("custom-re");
+  const $customTok = document.getElementById("custom-token");
+  const $customMsg = document.getElementById("custom-msg");
+
+  const enabled = new Set();
+  const customRule = PS_RULES.filter(function (r) { return r.id === "custom"; })[0];
+
+  /* ── Build one toggle row per rule, straight from PS_RULES. ── */
+  PS_RULES.forEach(function (rule) {
+    enabled.add(rule.id);
+
+    const row = document.createElement("label");
+    row.className = "ps-focus flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 " +
+                    "bg-slate-50/70 px-3 py-2.5 transition hover:border-indigo-300 hover:bg-indigo-50/60";
+    row.setAttribute("for", "rule-" + rule.id);
+
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.id = "rule-" + rule.id;
+    cb.className = "sr-only";
+    cb.checked = true;
+    cb.addEventListener("change", function () {
+      if (cb.checked) enabled.add(rule.id); else enabled.delete(rule.id);
+      syncCustomRow();
+      render();
+    });
+
+    const sw = document.createElement("span");
+    sw.className = "ps-switch";
+
+    const dot = document.createElement("span");
+    dot.className = "h-2.5 w-2.5 flex-none rounded-full";
+    dot.style.background = colorFor(rule.id);
+
+    const txt = document.createElement("span");
+    txt.className = "min-w-0 flex-1";
+    txt.innerHTML = '<span class="block text-[13px] font-semibold text-slate-800">' +
+                    PS_esc(rule.label) + "</span>" +
+                    '<span class="mono block truncate text-[10.5px] text-slate-500">→ ' +
+                    PS_esc(rule.token) + "</span>";
+
+    row.append(cb, sw, dot, txt);
+    $toggles.appendChild(row);
+  });
+
+  function colorFor(id) {
+    return ({ keys: "#d97706", dburl: "#ea580c", network: "#0284c7", email: "#7c3aed",
+              phone: "#059669", creds: "#e11d48", custom: "#c026d3" })[id] || "#94a3b8";
+  }
+
+  /* ── The custom-regex inputs only matter when its toggle is on. ── */
+  function syncCustomRow() {
+    $customRow.classList.toggle("hidden", !enabled.has("custom"));
+  }
+  syncCustomRow();
+
+  function compileCustom() {
+    customRule.token = $customTok.value.trim() || "[REDACTED_CUSTOM]";
+    const raw = $customRe.value;
+    customRule.patterns = [];
+
+    if (!raw.trim()) {
+      $customMsg.className = "mt-2 text-[11px] text-slate-500";
+      $customMsg.textContent = "Applied live with the g flag. Invalid patterns are ignored (never thrown).";
+      return;
+    }
+    try {
+      customRule.patterns = [new RegExp(raw, "g")];
+      $customMsg.className = "mt-2 text-[11px] font-semibold text-emerald-600";
+      $customMsg.textContent = "✓ valid pattern — matching with the g flag";
+    } catch (err) {
+      $customMsg.className = "mt-2 text-[11px] font-semibold text-rose-600";
+      $customMsg.textContent = "✕ invalid regex — ignored (" + err.message + ")";
+    }
+  }
+
+  /* ── Count + render. ── */
+  let pending = null;
+
+  function render() {
+    const text = $input.value;
+
+    // Live input stats (cheap enough to always run).
+    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+    const lines = text ? text.split(/\n/).length : 0;
+    $inStats.textContent = text.length.toLocaleString() + " chars · " +
+                           words.toLocaleString() + " words · " +
+                           lines.toLocaleString() + " lines";
+
+    const ranges = text ? PS_scan(text, enabled) : [];
+    const res = PS_apply(text, ranges);
+    $output.innerHTML = res.html;
+
+    // Per-rule counts.
+    const counts = {};
+    ranges.forEach(function (r) { counts[r.rule] = (counts[r.rule] || 0) + 1; });
+    const total = ranges.length;
+
+    $outStats.textContent = total === 1 ? "1 redaction" : total.toLocaleString() + " redactions";
+
+    $report.innerHTML = "";
+    if (total === 0) {
+      $reportCard.classList.add("hidden");
+    } else {
+      $reportCard.classList.remove("hidden");
+      PS_RULES.forEach(function (rule) {
+        const n = counts[rule.id] || 0;
+        if (!n) return;
+        const chip = document.createElement("span");
+        chip.className = "rounded-full border border-indigo-100 bg-indigo-50 px-2.5 py-1 text-[11px] font-semibold text-indigo-700";
+        chip.textContent = rule.label + " · " + n;
+        $report.appendChild(chip);
+      });
+    }
+
+    // Lifetime state of the action bar.
+    const active = PS_RULES.filter(function (r) { return enabled.has(r.id); }).length;
+    $ruleCount.textContent = active + " / " + PS_RULES.length + " rules active";
+    $copy.disabled = text.length === 0;
+  }
+
+  /* Huge pastes (multi-MB logs) get coalesced so typing never stalls. */
+  function schedule() {
+    if (pending) return;
+    if ($input.value.length > 120000) {
+      pending = setTimeout(function () { pending = null; render(); }, 40);
+    } else {
+      pending = true;
+      requestAnimationFrame(function () { pending = null; render(); });
+    }
+  }
+
+  $input.addEventListener("input", schedule);
+  $customRe.addEventListener("input", function () { compileCustom(); render(); });
+  $customTok.addEventListener("input", function () { compileCustom(); render(); });
+
+  /* ── Buttons ── */
+  document.getElementById("btn-all").addEventListener("click", function () {
+    PS_RULES.forEach(function (r) { enabled.add(r.id); });
+    document.querySelectorAll("#toggles input").forEach(function (cb) { cb.checked = true; });
+    syncCustomRow(); render();
+  });
+  document.getElementById("btn-none").addEventListener("click", function () {
+    enabled.clear();
+    document.querySelectorAll("#toggles input").forEach(function (cb) { cb.checked = false; });
+    syncCustomRow(); render();
+  });
+
+  document.getElementById("btn-clear").addEventListener("click", function () {
+    $input.value = "";
+    $customRe.value = "";
+    $customTok.value = "[REDACTED_CUSTOM]";
+    compileCustom();
+    render();
+    $input.focus();
+  });
+
+  document.getElementById("btn-sample").addEventListener("click", function () {
+    $input.value = SAMPLE_LOG;
+    render();
+  });
+
+  /* ── Copy (Clipboard API with a legacy fallback). ── */
+  let copyTimer = null;
+  $copy.addEventListener("click", function () {
+    const text = $input.value;
+    const ranges = text ? PS_scan(text, enabled) : [];
+    const safe = PS_apply(text, ranges).plain;
+
+    const done = function (ok) {
+      $copy.textContent = ok ? "✓ Copied!" : "⚠ Copy failed";
+      $copy.classList.toggle("ps-btn-copied", ok);
+      clearTimeout(copyTimer);
+      copyTimer = setTimeout(function () {
+        $copy.textContent = "📋 Copy Safe Text";
+        $copy.classList.remove("ps-btn-copied");
+      }, 1600);
+    };
+
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(safe).then(function () { done(true); },
+                                               function () { done(legacyCopy(safe)); });
+    } else {
+      done(legacyCopy(safe));
+    }
+  });
+
+  function legacyCopy(text) {
+    try {
+      // File:// and non-secure origins: the Clipboard API is often unavailable, this works.
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.top = "-1000px";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      return ok;
+    } catch (e) { return false; }
+  }
+
+  /* ── Modals ── */
+  function openModal(el) { el.hidden = false; document.body.style.overflow = "hidden"; }
+  function closeModal(el) { el.hidden = true; document.body.style.overflow = ""; }
+
+  const $trust = document.getElementById("modal-trust");
+  const $source = document.getElementById("modal-source");
+
+  document.getElementById("btn-trust").addEventListener("click", function () {
+    document.getElementById("code-trust").textContent = PS_sourceDump();
+    openModal($trust);
+  });
+  document.getElementById("btn-source").addEventListener("click", function () {
+    document.getElementById("code-source").textContent = PS_sourceDump();
+    openModal($source);
+  });
+
+  document.querySelectorAll("[data-close]").forEach(function (el) {
+    el.addEventListener("click", function () {
+      closeModal($trust); closeModal($source);
+    });
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") { closeModal($trust); closeModal($source); }
+  });
+
+  /* ── First paint ── */
+  compileCustom();
+  render();
+  $input.focus();
+})();
+
+/* ── One-click sample: every rule should light up on this. ── */
+const SAMPLE_LOG =
+"2026-10-10 22:13:51 INFO  boot: service=api-gateway region=us-east-1 pid=4412\r\n" +
+"2026-10-10 22:13:51 DEBUG config loaded from /etc/api/config.yaml\r\n" +
+"2026-10-10 22:13:52 INFO  connecting postgres://appuser:Tr0ub4dor%26x@10.20.30.40:5432/prod\r\n" +
+"2026-10-10 22:13:52 WARN  retry 3/5 from node 192.168.2.224\r\n" +
+"2026-10-10 22:13:53 ERROR upstream 2001:0db8:85a3:0000:0000:8a2e:0370:7334 refused connection\r\n" +
+"2026-10-10 22:13:53 INFO  using OPENAI_API_KEY=sk-proj-Qw8Zn2mVd4Kp7Rt1Yb6Xs9Lc3Hf5Gj0Da\r\n" +
+"2026-10-10 22:13:54 INFO  aws access key AKIAQ7ZP3MEXAMPLE999 rotated ok\r\n" +
+"2026-10-10 22:13:54 DEBUG Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIn0.Km3nQ8rT5vY2wZ9bX1cL7pJ4hG6dF0sA2eR8uN\r\n" +
+"2026-10-10 22:13:55 WARN  password='Hunter2!Sup3rSecret' rejected for user mike\r\n" +
+"2026-10-10 22:13:56 INFO  notify ops@example.com and jane.doe@acme-corp.io about ticket #4471\r\n" +
+"2026-10-10 22:13:57 INFO  callback phone +1 (555) 123-4567\r\n" +
+"2026-10-10 22:13:58 ERROR ssh 127.0.0.1:2222 and localhost:8000 timed out after 30s\r\n" +
+"2026-10-10 22:13:59 DEBUG client_secret: \"acme_live_7d3b8c1f5a2e9046\"\r\n" +
+"2026-10-10 22:13:59 DEBUG -----BEGIN PRIVATE KEY-----\r\n" +
+"MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7VJTUt9Us8cKj\r\n" +
+"MzEfYyjiWA4R4/M2bS1GB4t7NXp98C3SC6dVMvDuictGeurT8jNbvJZHtCSuYEvu\r\n" +
+"-----END PRIVATE KEY-----\r\n" +
+"2026-10-10 22:14:00 INFO  done in 9.2s\r\n";
+</script>
+</body>
+</html>
