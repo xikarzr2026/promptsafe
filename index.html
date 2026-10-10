@@ -131,7 +131,11 @@
         </svg>
       </div>
       <div class="leading-tight">
-        <h1 class="text-lg font-bold tracking-tight text-slate-900">PromptSafe</h1>
+        <div class="flex items-center gap-2">
+          <h1 class="text-lg font-bold tracking-tight text-slate-900">PromptSafe</h1>
+          <span class="rounded-md border border-indigo-100 bg-indigo-50 px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-indigo-600"
+                title="PromptSafe v1.2 — light theme, connection-string rule, verification sweep">v1.2</span>
+        </div>
         <p class="text-[11px] text-slate-500">scrub secrets before you paste</p>
       </div>
     </div>
@@ -167,15 +171,17 @@
     </div>
     <div class="min-w-0">
       <p class="text-[15px] font-bold tracking-tight text-slate-900 sm:text-base">
-        No database. Nothing is seen. Nothing is saved.
+        Privacy statement — no database, nothing seen, nothing saved.
       </p>
       <p class="mt-1 max-w-3xl text-[13.5px] leading-relaxed text-slate-600 sm:text-sm">
-        PromptSafe has <b class="font-semibold text-slate-700">no server, no database, no cookies, no account and no analytics</b>.
-        Everything you paste is processed entirely inside this browser tab, on your own machine — not one byte of your text is
-        transmitted, logged, or stored anywhere. There is no copy of it on any website, because there is no website behind this page
-        to hold one. Close the tab and every trace of it is gone for good. You don't have to take our word for it:
-        press <kbd class="rounded border border-slate-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-slate-600">F12</kbd>,
-        open the <b class="font-semibold text-slate-700">Network</b> tab, and watch it stay completely empty while you scrub.
+        PromptSafe operates entirely within your browser. There is <b class="font-semibold text-slate-700">no server-side component,
+        no database, no user accounts, no cookies and no analytics</b>. All text you enter is processed locally in this tab by
+        client-side JavaScript; no portion of it is transmitted, logged, persisted or stored on any device or server. Because no
+        backend exists, there is no copy of your data to retain, and closing this tab discards it permanently. This claim is
+        independently verifiable: open your browser's developer tools
+        (<kbd class="rounded border border-slate-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-slate-600">F12</kbd>),
+        select the <b class="font-semibold text-slate-700">Network</b> tab, and confirm that no requests are issued while text is
+        being processed.
       </p>
     </div>
   </section>
@@ -252,9 +258,12 @@
   </section>
 
   <footer class="mt-6 rounded-xl border border-slate-200 bg-white/70 px-4 py-3 text-[11px] leading-relaxed text-slate-500">
-    <p><b class="font-semibold text-slate-600">PromptSafe runs entirely in your browser.</b> No backend, no database, no cookies,
-       no telemetry, no analytics — nothing you paste is ever seen or saved by this page.
-       The only network request it makes is the Tailwind stylesheet at load; scrubbing itself sends nothing at all.</p>
+    <p><b class="font-semibold text-slate-600">PromptSafe v1.2 runs entirely in your browser.</b> No backend, no database, no cookies,
+       no telemetry and no analytics — nothing you paste is ever seen or saved by this page. The only network request it makes is the
+       Tailwind stylesheet at load; all text processing is performed locally and transmits nothing.</p>
+    <p class="mt-1"><a href="https://github.com/xikarzr2026/promptsafe" target="_blank" rel="noopener noreferrer"
+       class="font-semibold text-indigo-600 underline underline-offset-2 hover:text-indigo-500">Source on GitHub</a>
+       · MIT licensed · self-host it as a single file.</p>
   </footer>
 </main>
 
@@ -385,9 +394,10 @@ const PS_RULES = [
       // AWS access key IDs
       /\b(?:AKIA|ASIA|ABIA|ACCA)[0-9A-Z]{16}\b/g,
       // Google API keys
-      /\bAIza[0-9A-Za-z_-]{35}\b/g,
-      // GitHub tokens
+      /\bAIza[0-9A-Za-z_-]{35,}\b/g,
+      // GitHub tokens (classic + fine-grained)
       /\bgh[pousr]_[A-Za-z0-9]{30,}\b/g,
+      /\bgithub_pat_[A-Za-z0-9_]{20,}\b/g,
       // Slack tokens
       /\bxox[baprs]-[A-Za-z0-9-]{10,}\b/g,
       // Stripe keys
@@ -448,8 +458,13 @@ const PS_RULES = [
     label: "Mask Passwords & Tokens",
     token: "[REDACTED_SECRET]",
     patterns: [
-      /(\b(?:password|passwd|pwd|passphrase|secret|token|api[_-]?key|apikey|access[_-]?key|client[_-]?secret|auth[_-]?token|private[_-]?key)\b["']?\s*(?:=|:|=>|:=)\s*)(["']?)([^\s,;"'`]+)\2/gi
+      /((?:^|[^A-Za-z0-9])(?:aws_secret_access_key|secret_access_key|secret_key|private_key|client_secret|api[_-]?key|apikey|access[_-]?key|access[_-]?token|auth[_-]?token|refresh[_-]?token|db[_-]?password|admin[_-]?password|password|passwd|pwd|passphrase|secret|token)\b["']?\s*(?:=|:|=>|:=)\s*)(["']?)([^\s,;"'`]+)\2/gi
     ],
+    // Never re-redact a token we already wrote: keeps repeat scrubs idempotent.
+    //   OPENAI_API_KEY=[REDACTED_API_KEY]  must not become  ...=[REDACTED_SECRET]
+    filter: function (matched, m) {
+      return !/^\[REDACTED_[A-Z_]*\]$/.test(m[3]);
+    },
     // Keep the key name and quotes readable, redact only the value:
     //   password = "hunter2"   ->   password = "[REDACTED_SECRET]"
     build: function (match) {
@@ -842,12 +857,12 @@ const SAMPLE_LOG =
 "2026-10-10 22:13:51 INFO  boot: service=api-gateway region=us-east-1 pid=4412\r\n" +
 "2026-10-10 22:13:51 DEBUG config loaded from /etc/api/config.yaml\r\n" +
 "2026-10-10 22:13:52 INFO  connecting postgres://appuser:Tr0ub4dor%26x@10.20.30.40:5432/prod\r\n" +
-"2026-10-10 22:13:52 WARN  retry 3/5 from node 192.168.2.224\r\n" +
+"2026-10-10 22:13:52 WARN  retry 3/5 from node 192.0.2.44\r\n" +
 "2026-10-10 22:13:53 ERROR upstream 2001:0db8:85a3:0000:0000:8a2e:0370:7334 refused connection\r\n" +
 "2026-10-10 22:13:53 INFO  using OPENAI_API_KEY=sk-proj-Qw8Zn2mVd4Kp7Rt1Yb6Xs9Lc3Hf5Gj0Da\r\n" +
 "2026-10-10 22:13:54 INFO  aws access key AKIAQ7ZP3MEXAMPLE999 rotated ok\r\n" +
 "2026-10-10 22:13:54 DEBUG Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIn0.Km3nQ8rT5vY2wZ9bX1cL7pJ4hG6dF0sA2eR8uN\r\n" +
-"2026-10-10 22:13:55 WARN  password='Hunter2!Sup3rSecret' rejected for user mike\r\n" +
+"2026-10-10 22:13:55 WARN  password='Hunter2!Sup3rSecret' rejected for user deploy-bot\r\n" +
 "2026-10-10 22:13:56 INFO  notify ops@example.com and jane.doe@acme-corp.io about ticket #4471\r\n" +
 "2026-10-10 22:13:57 INFO  callback phone +1 (555) 123-4567\r\n" +
 "2026-10-10 22:13:58 ERROR ssh 127.0.0.1:2222 and localhost:8000 timed out after 30s\r\n" +

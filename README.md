@@ -2,6 +2,7 @@
 
 <p>
 <a href="https://xikarzr2026.github.io/promptsafe/"><img src="https://img.shields.io/badge/%E2%96%B6%20live%20app-open%20promptsafe-6366f1?style=for-the-badge" alt="Open the live app"></a>
+<img src="https://img.shields.io/badge/version-v1.2-8b5cf6?style=for-the-badge" alt="v1.2">
 <img src="https://img.shields.io/badge/backend-none-10b981?style=for-the-badge" alt="No backend">
 <img src="https://img.shields.io/badge/database-none-10b981?style=for-the-badge" alt="No database">
 <img src="https://img.shields.io/badge/data%20stored-nothing%20ever-10b981?style=for-the-badge" alt="Nothing stored">
@@ -50,7 +51,7 @@ stylesheet is inline, and that's cached after first load.
 |---|---|---|
 | 🔑 **API keys & secrets** | OpenAI `sk-…`, AWS `AKIA…`, Google `AIza…`, GitHub `ghp_…`, Slack `xoxb-…`, Stripe, JWTs, `Bearer`/`Basic` headers, PEM private keys | `[REDACTED_API_KEY]` |
 | 🔌 **Connection strings** | `postgres://user:pass@host:5432/db`, Mongo, Redis, MySQL, AMQP, SFTP | `[REDACTED_CONNECTION_STRING]` |
-| 🌐 **IPv4 / IPv6** | `10.20.30.40`, `192.168.1.0/24`, `127.0.0.1:2222`, full & compressed IPv6, `*.local` hostnames | `[REDACTED_IP]` |
+| 🌐 **IPv4 / IPv6** | `10.20.30.40`, `192.0.2.0/24`, `203.0.113.7:8443`, full & compressed IPv6, `*.local` hostnames | `[REDACTED_IP]` |
 | ✉️ **Emails** | `ops@example.com` | `[REDACTED_EMAIL]` |
 | ☎️ **Phone numbers** | `+1 (555) 123-4567` | `[REDACTED_PHONE]` |
 | 🔒 **Passwords & tokens** | `password='…'`, `api_key=…`, `client_secret: "…"` | `password='[REDACTED_SECRET]'` |
@@ -121,18 +122,48 @@ and the code viewer all pick it up automatically.
 ## 🧪 Verification
 
 The engine is tested by extracting it *from the shipped `index.html`* and running it —
-not from a re-typed copy.
+not from a re-typed copy. Nothing here is a claim; every number is from a real run.
 
 | Check | Result |
 |---|---|
-| Engine unit tests | **55 / 55 pass** |
+| Engine + regression sweep | **151 / 151 pass** |
+| Secret formats that must be caught | **39 / 39 redacted** |
+| Benign strings that must survive | **30 / 30 untouched** |
 | Headless Chrome render | pass, **0 JS errors** |
-| Secrets removed from the 19-line sample log | 14 redactions, 0 leaks |
-| Benign content preserved | timestamps, versions, `pid=4412`, paths intact |
+| Range invariants (sorted, non-overlapping, in-bounds) | pass |
+| Idempotence — scrubbing twice == scrubbing once | pass |
+| Sample log | 14 redactions, **0 leaks** |
 | All rules off | output byte-identical to input |
-| HTML-injection attempt | escaped, no live tag |
+| HTML / SVG injection attempts | escaped, no live tag |
 | Malformed custom regex | reported, page survives |
+| Shipped-file PII scan | clean |
 | Network audit (Chrome DevTools Protocol) | **0 requests during scrubbing** |
+| Throughput | 1.17 M chars → 48,000 redactions in ~140 ms |
+
+---
+
+## 📋 Changelog
+
+### v1.2
+- **Light theme** — white surfaces, indigo/violet accents, soft gradients. Redaction
+  highlights re-tuned for contrast on white.
+- **Professional privacy statement** in the header, replacing the informal notice.
+- **Connection strings** split into their own rule token (`[REDACTED_CONNECTION_STRING]`)
+  so a DB URL is no longer mislabelled as an API key.
+- **Phone numbers** get a digit-count filter (10–15) so timestamps and IDs aren't eaten.
+- **Fixed false negatives:** `aws_secret_access_key`, `secret_key`, `db_password`,
+  `refresh_token` and other compound credential names; fine-grained `github_pat_` tokens;
+  Google keys of non-canonical length.
+- **Fixed an idempotence bug:** a second pass over already-scrubbed text would rewrite
+  `OPENAI_API_KEY=[REDACTED_API_KEY]` to `…=[REDACTED_SECRET]`. Credential values that are
+  already a redaction token are now left alone.
+- Version shown in the header and the README banner.
+
+### v1.1
+- Connection-string rule, phone-number mask, light/dark neutrality work.
+
+### v1.0
+- Initial release: single-file client-side scrubber with a live source viewer.
 
 ---
 
