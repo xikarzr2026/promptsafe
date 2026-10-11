@@ -1122,13 +1122,18 @@ function PS_sourceDump() {
     openModal($source);
   });
 
+  function closeAllModals() {
+    closeModal($trust); closeModal($source);
+    closeModal(document.getElementById("modal-templates"));
+    closeModal(document.getElementById("modal-shortcuts"));
+    closeModal(document.getElementById("modal-export"));
+  }
   document.querySelectorAll("[data-close]").forEach(function (el) {
-    el.addEventListener("click", function () {
-      closeModal($trust); closeModal($source);
-    });
+    el.addEventListener("click", closeAllModals);
+    el.addEventListener("touchend", function (e) { e.preventDefault(); closeAllModals(); });
   });
   document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") { closeModal($trust); closeModal($source); }
+    if (e.key === "Escape") { closeAllModals(); }
   });
 
   /* ── First paint ── */
