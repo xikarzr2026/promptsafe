@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Privacy & Compliance — PromptSafe</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%236366f1'/%3E%3Cstop offset='1' stop-color='%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='url(%23g' d='M16 2 5 7v9c0 7 4.7 12.3 11 14 6.3-1.7 11-7 11-14V7z'/%3E%3Cpath d='M11 15.6l3.2 3.2 6.4-7.3' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, sans-serif; }
+  :root { --ps-brand: #6366f1; --ps-brand-2: #8b5cf6; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-700 antialiased">
+  <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur-md">
+    <div class="mx-auto flex max-w-4xl items-center gap-3 px-4 py-3">
+      <div class="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500">
+        <svg class="h-5 w-5 text-white" viewBox="0 0 32 32"><path fill="currentColor" d="M16 2 5 7v9c0 7 4.7 12.3 11 14 6.3-1.7 11-7 11-14V7z"/><path d="M11 15.6l3.2 3.2 6.4-7.3" fill="none" stroke="#4338ca" stroke-width="2.6"/></svg>
+      </div>
+      <div>
+        <h1 class="text-lg font-bold text-slate-900">PromptSafe</h1>
+        <p class="text-[11px] text-slate-500">Privacy & Compliance</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-4xl px-4 py-8 space-y-8">
+    <section>
+      <h2 class="text-2xl font-bold text-slate-900">Privacy & Compliance Statement</h2>
+      <p class="mt-2 text-slate-600">PromptSafe is designed from the ground up to be the most privacy-respecting secret scrubber available. This document explains exactly what data practices we follow and why.</p>
+    </section>
+
+    <section class="rounded-xl border border-slate-200 bg-white p-6">
+      <h3 class="text-lg font-semibold text-slate-800">GDPR Compliance</h3>
+      <div class="mt-4 space-y-3 text-[14px] leading-relaxed text-slate-600">
+        <p><strong class="text-slate-800">Article 5 — Data minimisation:</strong> PromptSafe processes text entirely in your browser. No personal data is transmitted, stored, or retained. There is no server-side component to hold data.</p>
+        <p><strong class="text-slate-800">Article 25 — Data protection by design:</strong> The application is a single HTML file with zero external dependencies beyond a cached stylesheet. No cookies, no local storage, no tracking pixels, no analytics.</p>
+        <p><strong class="text-slate-800">Article 32 — Security of processing:</strong> All processing happens client-side using deterministic regular expressions. There is no network transmission of any kind during scrubbing. You can verify this by opening your browser's Network tab and confirming zero requests are made.</p>
+        <p><strong class="text-slate-800">Article 33 — Breach notification:</strong> Because no data leaves your browser and nothing is stored on any server, there is no breach vector. Your data never reaches a system that could be compromised.</p>
+      </div>
+    </section>
+
+    <section class="rounded-xl border border-slate-200 bg-white p-6">
+      <h3 class="text-lg font-semibold text-slate-800">CCPA Compliance</h3>
+      <div class="mt-4 space-y-3 text-[14px] leading-relaxed text-slate-600">
+        <p><strong class="text-slate-800">Right to know:</strong> PromptSafe collects zero personal information. There is nothing to disclose because nothing is collected.</p>
+        <p><strong class="text-slate-800">Right to delete:</strong> Because no data is stored anywhere, there is nothing to delete. Closing the tab destroys all traces of your input.</p>
+        <p><strong class="text-slate-800">Right to opt-out of sale:</strong> PromptSafe does not sell, share, or transmit any data. There is nothing to opt out of.</p>
+        <p><strong class="text-slate-800">Non-discrimination:</strong> There is no user account system, no tracking, and no profiling. All users receive the identical experience.</p>
+      </div>
+    </section>
+
+    <section class="rounded-xl border border-slate-200 bg-white p-6">
+      <h3 class="text-lg font-semibold text-slate-800">Technical Architecture</h3>
+      <div class="mt-4 space-y-3 text-[14px] leading-relaxed text-slate-600">
+        <p><strong class="text-slate-800">Single file:</strong> The entire application is one HTML file. No build step, no package manager, no server component.</p>
+        <p><strong class="text-slate-800">Zero backend:</strong> There is no API, no database, no cloud function, no server-side processing. The app works fully offline after the first load.</p>
+        <p><strong class="text-slate-800">Zero storage:</strong> PromptSafe does not use cookies, local storage, session storage, IndexedDB, or any other persistence mechanism.</p>
+        <p><strong class="text-slate-800">Zero network:</strong> During text processing, no network requests are made. The only network request is the Tailwind stylesheet at page load, which is cached by the browser.</p>
+        <p><strong class="text-slate-800">Open source:</strong> The complete source code is available on GitHub under the MIT license. You can audit, fork, and self-host it.</p>
+      </div>
+    </section>
+
+    <section class="rounded-xl border border-emerald-200 bg-emerald-50 p-6">
+      <h3 class="text-lg font-semibold text-emerald-800">Verify It Yourself</h3>
+      <div class="mt-4 space-y-3 text-[14px] leading-relaxed text-emerald-900/90">
+        <p>Don't take our word for it. Here is how to verify our privacy claims in under a minute:</p>
+        <ol class="list-decimal space-y-2 pl-5">
+          <li>Open your browser's Developer Tools (F12)</li>
+          <li>Select the Network tab and clear it</li>
+          <li>Paste text containing secrets into PromptSafe</li>
+          <li>Watch the Network tab — no requests are made</li>
+          <li>Set throttling to "Offline" and keep scrubbing — it still works</li>
+          <li>Read the source code — it is one file, available on GitHub</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="rounded-xl border border-slate-200 bg-white p-6">
+      <h3 class="text-lg font-semibold text-slate-800">Contact</h3>
+      <div class="mt-4 space-y-3 text-[14px] leading-relaxed text-slate-600">
+        <p>For questions about privacy or compliance, open an issue on <a href="https://github.com/xikarzr2026/promptsafe" class="font-semibold text-indigo-600 underline underline-offset-2 hover:text-indigo-500">GitHub</a>.</p>
+        <p>PromptSafe is MIT licensed. You are free to use, modify, and distribute it.</p>
+      </div>
+    </section>
+
+    <footer class="text-center text-[12px] text-slate-400 pb-8">
+      <p>PromptSafe v2.0 — 100% client-side privacy scrubber</p>
+      <p class="mt-1">No backend. No database. Nothing stored.</p>
+    </footer>
+  </main>
+</body>
+</html>

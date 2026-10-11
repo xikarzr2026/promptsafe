@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="color-scheme" content="light" />
+<meta name="color-scheme" content="light dark" />
 <meta name="description" content="PromptSafe — a 100% client-side privacy scrubber that removes API keys, IPs, emails and credentials from text before you paste it into an AI chat. No database, nothing seen, nothing saved." />
 <title>PromptSafe — Client-Side Secret Scrubber</title>
 <!-- Inline SVG favicon: no extra network request. -->
@@ -31,6 +31,150 @@
     --ps-brand: #6366f1;
     --ps-brand-2: #8b5cf6;
   }
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --ps-ink: #e2e8f0;
+    --ps-body: #94a3b8;
+    --ps-muted: #64748b;
+    --ps-line: #334155;
+    --ps-surface: #1e293b;
+    --ps-canvas: #0f172a;
+    --ps-brand: #818cf8;
+    --ps-brand-2: #a78bfa;
+  }
+  [data-theme="dark"] body {
+    background:
+      radial-gradient(1100px 520px at 50% -12%, #1e1b4b 0%, rgba(30,27,75,0) 62%),
+      radial-gradient(900px 500px at 92% 4%, #2e1065 0%, rgba(46,16,101,0) 55%),
+      var(--ps-canvas);
+  }
+  [data-theme="dark"] .ps-btn {
+    background: #1e293b; color: #cbd5e1; border-color: #334155;
+  }
+  [data-theme="dark"] .ps-btn:hover { background: #334155; border-color: #475569; color: #e2e8f0; }
+  [data-theme="dark"] .ps-btn-primary { color: #fff; }
+  [data-theme="dark"] .ps-card { background: #1e293b; border-color: #334155; }
+  [data-theme="dark"] textarea, [data-theme="dark"] input {
+    background: #0f172a; color: #e2e8f0; border-color: #334155;
+  }
+  [data-theme="dark"] textarea:focus, [data-theme="dark"] input:focus { background: #1e293b; }
+  [data-theme="dark"] pre { background: #0f172a; color: #e2e8f0; border-color: #334155; }
+  [data-theme="dark"] .ps-disclaimer { background: linear-gradient(135deg, #1e1b4b 0%, #2e1065 45%, #1e293b 100%); border-color: #3730a3; }
+  [data-theme="dark"] .ps-disclaimer p { color: #cbd5e1; }
+  [data-theme="dark"] .ps-disclaimer b { color: #e2e8f0; }
+  [data-theme="dark"] header { background: rgba(15,23,42,.8); border-color: #334155; }
+  [data-theme="dark"] h1, [data-theme="dark"] h2 { color: #e2e8f0; }
+  [data-theme="dark"] .ps-panel { background: #0f172a; }
+  [data-theme="dark"] .ps-scroll::-webkit-scrollbar-thumb { background: #475569; }
+  [data-theme="dark"] .ps-scroll::-webkit-scrollbar-thumb:hover { background: #64748b; }
+  [data-theme="dark"] .ps-switch { background: #334155; box-shadow: inset 0 0 0 1px #475569; }
+  [data-theme="dark"] .ps-switch::after { background: #e2e8f0; }
+  [data-theme="dark"] details > summary { color: #e2e8f0; }
+  [data-theme="dark"] details { background: #0f172a; border-color: #334155; }
+  [data-theme="dark"] details p, [data-theme="dark"] details li { color: #94a3b8; }
+  [data-theme="dark"] .ps-code { background: #020617; color: #a5b4fc; }
+  [data-theme="dark"] .ps-code-inline { background: #1e293b; color: #a5b4fc; }
+  [data-theme="dark"] .ps-modal .ps-dialog { background: #1e293b; border-color: #334155; }
+  [data-theme="dark"] .ps-modal h2 { color: #e2e8f0; }
+  [data-theme="dark"] .ps-modal p, [data-theme="dark"] .ps-modal li { color: #94a3b8; }
+  [data-theme="dark"] .ps-backdrop { background: rgba(0,0,0,.6); }
+  [data-theme="dark"] .hl-keys    { background: #451a03; color: #fbbf24; }
+  [data-theme="dark"] .hl-dburl   { background: #431407; color: #fb923c; }
+  [data-theme="dark"] .hl-network { background: #082f49; color: #7dd3fc; }
+  [data-theme="dark"] .hl-email   { background: #2e1065; color: #c4b5fd; }
+  [data-theme="dark"] .hl-creds   { background: #4c0519; color: #fda4af; }
+  [data-theme="dark"] .hl-phone   { background: #022c22; color: #6ee7b7; }
+  [data-theme="dark"] .hl-custom  { background: #4a044e; color: #f0abfc; }
+  [data-theme="dark"] .hl-inject   { background: #450a0a; color: #fca5a5; }
+  [data-theme="dark"] kbd { background: #334155; color: #e2e8f0; border-color: #475569; }
+  [data-theme="dark"] .ps-btn-copied { color: #fff !important; }
+  [data-theme="dark"] #custom-row { background: #0f172a; border-color: #334155; }
+  [data-theme="dark"] #custom-row label { color: #94a3b8; }
+  [data-theme="dark"] #custom-msg { color: #94a3b8; }
+  [data-theme="dark"] .ps-focus:focus-visible { outline-color: #818cf8; }
+  [data-theme="dark"] .chev { color: #818cf8; }
+  [data-theme="dark"] .ps-disclaimer::before { background: linear-gradient(180deg, #818cf8, #a78bfa); }
+  [data-theme="dark"] .ps-disclaimer svg { color: #818cf8; }
+  [data-theme="dark"] .ps-disclaimer .bg-white { background: #1e293b; }
+  [data-theme="dark"] .ps-disclaimer .ring-indigo-200 { --tw-ring-color: #3730a3; }
+  [data-theme="dark"] .ps-disclaimer .shadow-sm { box-shadow: 0 1px 2px rgba(0,0,0,.3); }
+  [data-theme="dark"] .ps-disclaimer .text-slate-900 { color: #e2e8f0; }
+  [data-theme="dark"] .ps-disclaimer .text-slate-600 { color: #94a3b8; }
+  [data-theme="dark"] .ps-disclaimer .text-slate-700 { color: #cbd5e1; }
+  [data-theme="dark"] .ps-disclaimer .font-semibold { color: #e2e8f0; }
+  [data-theme="dark"] .ps-disclaimer .font-bold { color: #e2e8f0; }
+  [data-theme="dark"] .ps-disclaimer .tracking-tight { color: #e2e8f0; }
+  [data-theme="dark"] .ps-disclaimer .text-indigo-600 { color: #818cf8; }
+  [data-theme="dark"] .ps-disclaimer .text-indigo-500 { color: #818cf8; }
+  [data-theme="dark"] .ps-disclaimer .underline { color: #818cf8; }
+  [data-theme="dark"] .ps-disclaimer .hover\:text-indigo-500:hover { color: #a5b4fc; }
+  [data-theme="dark"] .ps-disclaimer .bg-indigo-50 { background: #1e1b4b; }
+  [data-theme="dark"] .ps-disclaimer .border-indigo-100 { border-color: #3730a3; }
+  [data-theme="dark"] .ps-disclaimer .text-indigo-700 { color: #a5b4fc; }
+  [data-theme="dark"] .ps-disclaimer .text-indigo-600 { color: #818cf8; }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-800 { color: #6ee7b7; }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-900 { color: #a7f3d0; }
+  [data-theme="dark"] .ps-disclaimer .bg-emerald-50 { background: #022c22; }
+  [data-theme="dark"] .ps-disclaimer .border-emerald-200 { border-color: #065f46; }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-700 { color: #6ee7b7; }
+  [data-theme="dark"] .ps-disclaimer .bg-emerald-100 { background: #064e3b; }
+  [data-theme="dark"] .ps-disclaimer .hover\:bg-emerald-100:hover { background: #065f46; }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-600 { color: #34d399; }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-500 { color: #10b981; }
+  [data-theme="dark"] .ps-disclaimer .bg-emerald-50\/50 { background: rgba(2,44,34,.5); }
+  [data-theme="dark"] .ps-disclaimer .border-emerald-200\/50 { border-color: rgba(6,95,70,.5); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-700\/50 { color: rgba(110,231,183,.5); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-600\/50 { color: rgba(52,211,153,.5); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-500\/50 { color: rgba(16,185,129,.5); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-400\/50 { color: rgba(52,211,153,.5); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-300\/50 { color: rgba(110,231,183,.5); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-200\/50 { color: rgba(16,185,129,.5); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-100\/50 { color: rgba(52,211,153,.5); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-50\/60 { background: rgba(2,44,34,.6); }
+  [data-theme="dark"] .ps-disclaimer .border-emerald-200\/60 { border-color: rgba(6,95,70,.6); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-700\/60 { color: rgba(110,231,183,.6); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-600\/60 { color: rgba(52,211,153,.6); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-500\/60 { color: rgba(16,185,129,.6); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-400\/60 { color: rgba(52,211,153,.6); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-300\/60 { color: rgba(110,231,183,.6); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-200\/60 { color: rgba(16,185,129,.6); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-100\/60 { color: rgba(52,211,153,.6); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-50\/70 { background: rgba(2,44,34,.7); }
+  [data-theme="dark"] .ps-disclaimer .border-emerald-200\/70 { border-color: rgba(6,95,70,.7); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-700\/70 { color: rgba(110,231,183,.7); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-600\/70 { color: rgba(52,211,153,.7); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-500\/70 { color: rgba(16,185,129,.7); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-400\/70 { color: rgba(52,211,153,.7); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-300\/70 { color: rgba(110,231,183,.7); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-200\/70 { color: rgba(16,185,129,.7); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-100\/70 { color: rgba(52,211,153,.7); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-50\/80 { background: rgba(2,44,34,.8); }
+  [data-theme="dark"] .ps-disclaimer .border-emerald-200\/80 { border-color: rgba(6,95,70,.8); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-700\/80 { color: rgba(110,231,183,.8); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-600\/80 { color: rgba(52,211,153,.8); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-500\/80 { color: rgba(16,185,129,.8); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-400\/80 { color: rgba(52,211,153,.8); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-300\/80 { color: rgba(110,231,183,.8); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-200\/80 { color: rgba(16,185,129,.8); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-100\/80 { color: rgba(52,211,153,.8); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-50\/90 { background: rgba(2,44,34,.9); }
+  [data-theme="dark"] .ps-disclaimer .border-emerald-200\/90 { border-color: rgba(6,95,70,.9); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-700\/90 { color: rgba(110,231,183,.9); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-600\/90 { color: rgba(52,211,153,.9); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-500\/90 { color: rgba(16,185,129,.9); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-400\/90 { color: rgba(52,211,153,.9); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-300\/90 { color: rgba(110,231,183,.9); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-200\/90 { color: rgba(16,185,129,.9); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-100\/90 { color: rgba(52,211,153,.9); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-50\/100 { background: rgba(2,44,34,1); }
+  [data-theme="dark"] .ps-disclaimer .border-emerald-200\/100 { border-color: rgba(6,95,70,1); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-700\/100 { color: rgba(110,231,183,1); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-600\/100 { color: rgba(52,211,153,1); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-500\/100 { color: rgba(16,185,129,1); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-400\/100 { color: rgba(52,211,153,1); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-300\/100 { color: rgba(110,231,183,1); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-200\/100 { color: rgba(16,185,129,1); }
+  [data-theme="dark"] .ps-disclaimer .text-emerald-100\/100 { color: rgba(52,211,153,1); }
   html, body { margin: 0; color: var(--ps-body);
     font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, sans-serif; }
   body {
@@ -151,6 +295,10 @@
     </button>
 
     <div class="ml-auto ps-wrap">
+      <button id="btn-theme" type="button" class="ps-btn" title="Toggle dark/light theme">🌙</button>
+      <button id="btn-shortcuts" type="button" class="ps-btn" title="Keyboard shortcuts">⌨️</button>
+      <button id="btn-export" type="button" class="ps-btn" title="Export redaction report">📊 Export</button>
+      <button id="btn-templates" type="button" class="ps-btn" title="Load a prompt template">📋 Templates</button>
       <button id="btn-source" type="button" class="ps-btn"><span aria-hidden="true">{ }</span> GitHub Source</button>
       <button id="btn-sample" type="button" class="ps-btn">📄 Load Sample Log</button>
       <button id="btn-clear"  type="button" class="ps-btn">✕ Clear All</button>
@@ -257,6 +405,71 @@
     <div id="report" class="ps-wrap"></div>
   </section>
 
+  <!-- ── Compression Mode ── -->
+  <section class="ps-card mt-4">
+    <div class="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+      <h2 class="text-sm font-semibold text-slate-800">Token Compression</h2>
+      <span class="mono text-[11px] text-slate-500">reduce token count before sending to AI</span>
+      <div class="ml-auto ps-wrap">
+        <button id="btn-compress" type="button" class="ps-btn">🗜️ Compress</button>
+      </div>
+    </div>
+    <div id="compress-result" class="hidden rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+      <div class="ps-wrap gap-4">
+        <span class="mono text-[11px] text-slate-500">Original: <strong id="compress-original" class="text-slate-800">0</strong> tokens</span>
+        <span class="mono text-[11px] text-slate-500">Compressed: <strong id="compress-compressed" class="text-slate-800">0</strong> tokens</span>
+        <span class="mono text-[11px] font-semibold text-emerald-600">Savings: <strong id="compress-savings">0%</strong></span>
+      </div>
+      <p class="mt-2 text-[11px] text-slate-500">Compression removes duplicate lines, collapses whitespace, and strips common log boilerplate. Secrets are still redacted.</p>
+    </div>
+  </section>
+
+  <!-- ── Injection Detection ── -->
+  <section class="ps-card mt-4">
+    <div class="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+      <h2 class="text-sm font-semibold text-slate-800">Prompt Injection Detection</h2>
+      <span class="mono text-[11px] text-slate-500">flag potential prompt injection patterns</span>
+      <div class="ml-auto ps-wrap">
+        <button id="btn-injection" type="button" class="ps-btn">🛡️ Scan for Injections</button>
+      </div>
+    </div>
+    <div id="injection-result" class="hidden rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+      <div id="injection-list" class="space-y-2"></div>
+    </div>
+  </section>
+
+  <!-- ── Reversible Redaction ── -->
+  <section class="ps-card mt-4">
+    <div class="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+      <h2 class="text-sm font-semibold text-slate-800">Reversible Redaction</h2>
+      <span class="mono text-[11px] text-slate-500">generate a mapping key to restore redacted text locally</span>
+      <div class="ml-auto ps-wrap">
+        <button id="btn-reversible" type="button" class="ps-btn">🔄 Generate Key</button>
+      </div>
+    </div>
+    <div id="reversible-result" class="hidden rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+      <p class="mb-2 text-[11px] text-slate-500">This generates a JSON mapping of redactions. Save it locally to restore the original text later. The key never leaves your browser.</p>
+      <pre id="reversible-key" class="ps-scroll ps-code mono max-h-40 overflow-auto p-3 text-[11px]"></pre>
+      <div class="ps-wrap mt-2">
+        <button id="btn-copy-key" type="button" class="ps-btn">📋 Copy Key</button>
+        <button id="btn-restore" type="button" class="ps-btn">🔄 Restore from Key</button>
+      </div>
+      <div id="restore-result" class="mt-2 hidden">
+        <textarea id="restore-input" class="ps-focus mono w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-800" rows="4" placeholder="Paste redacted text here..."></textarea>
+        <pre id="restore-output" class="ps-scroll ps-code mono mt-2 max-h-40 overflow-auto p-3 text-[11px]"></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Templates ── -->
+  <section class="ps-card mt-4">
+    <div class="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+      <h2 class="text-sm font-semibold text-slate-800">Prompt Templates</h2>
+      <span class="mono text-[11px] text-slate-500">pre-built templates with PII placeholders</span>
+    </div>
+    <div id="template-list" class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3"></div>
+  </section>
+
   <footer class="mt-6 rounded-xl border border-slate-200 bg-white/70 px-4 py-3 text-[11px] leading-relaxed text-slate-500">
     <p><b class="font-semibold text-slate-600">PromptSafe v1.2 runs entirely in your browser.</b> No backend, no database, no cookies,
        no telemetry and no analytics — nothing you paste is ever seen or saved by this page. The only network request it makes is the
@@ -357,6 +570,61 @@ open index.html         # macOS</pre>
         <a href="https://github.com/xikarzr2026/promptsafe" target="_blank" rel="noopener noreferrer"
            class="ps-btn">↗ github.com/xikarzr2026/promptsafe</a>
         <span class="text-[11px] text-slate-500">Fork it, self-host it, or open <span class="mono">index.html</span> straight off your disk.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ TEMPLATES MODAL ══════════════════════════ -->
+<div id="modal-templates" class="ps-modal" hidden role="dialog" aria-modal="true" aria-labelledby="templates-title">
+  <div class="ps-backdrop" data-close></div>
+  <div class="ps-dialog">
+    <div class="flex items-center gap-3 border-b border-slate-200 px-5 py-4">
+      <h2 id="templates-title" class="text-base font-bold text-slate-900">Prompt Templates</h2>
+      <button class="ps-btn ml-auto" data-close type="button" aria-label="Close">✕</button>
+    </div>
+    <div class="ps-scroll px-5 py-4 text-sm text-slate-600">
+      <p class="mb-4 text-[13px]">Load a template with PII placeholders. Fill in the blanks, then scrub before sending.</p>
+      <div id="templates-content" class="space-y-3"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ SHORTCUTS MODAL ══════════════════════════ -->
+<div id="modal-shortcuts" class="ps-modal" hidden role="dialog" aria-modal="true" aria-labelledby="shortcuts-title">
+  <div class="ps-backdrop" data-close></div>
+  <div class="ps-dialog">
+    <div class="flex items-center gap-3 border-b border-slate-200 px-5 py-4">
+      <h2 id="shortcuts-title" class="text-base font-bold text-slate-900">Keyboard Shortcuts</h2>
+      <button class="ps-btn ml-auto" data-close type="button" aria-label="Close">✕</button>
+    </div>
+    <div class="ps-scroll px-5 py-4 text-sm text-slate-600">
+      <div class="grid gap-2 sm:grid-cols-2">
+        <div class="rounded-lg border border-slate-200 p-3"><kbd class="rounded border border-slate-300 bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-600">Ctrl+Enter</kbd><span class="ml-2 text-[12px]">Scrub text</span></div>
+        <div class="rounded-lg border border-slate-200 p-3"><kbd class="rounded border border-slate-300 bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-600">Ctrl+C</kbd><span class="ml-2 text-[12px]">Copy result</span></div>
+        <div class="rounded-lg border border-slate-200 p-3"><kbd class="rounded border border-slate-300 bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-600">Ctrl+Z</kbd><span class="ml-2 text-[12px]">Clear all</span></div>
+        <div class="rounded-lg border border-slate-200 p-3"><kbd class="rounded border border-slate-300 bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-600">Ctrl+T</kbd><span class="ml-2 text-[12px]">Toggle theme</span></div>
+        <div class="rounded-lg border border-slate-200 p-3"><kbd class="rounded border border-slate-300 bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-600">Esc</kbd><span class="ml-2 text-[12px]">Close modal</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ EXPORT MODAL ══════════════════════════ -->
+<div id="modal-export" class="ps-modal" hidden role="dialog" aria-modal="true" aria-labelledby="export-title">
+  <div class="ps-backdrop" data-close></div>
+  <div class="ps-dialog">
+    <div class="flex items-center gap-3 border-b border-slate-200 px-5 py-4">
+      <h2 id="export-title" class="text-base font-bold text-slate-900">Export Redaction Report</h2>
+      <button class="ps-btn ml-auto" data-close type="button" aria-label="Close">✕</button>
+    </div>
+    <div class="ps-scroll px-5 py-4 text-sm text-slate-600">
+      <p class="mb-3 text-[13px]">Export a detailed report of all redactions found in your text.</p>
+      <div id="export-content" class="space-y-3"></div>
+      <div class="ps-wrap mt-4">
+        <button id="btn-export-json" type="button" class="ps-btn ps-btn-primary">📥 Export as JSON</button>
+        <button id="btn-export-csv" type="button" class="ps-btn">📥 Export as CSV</button>
+        <button id="btn-export-text" type="button" class="ps-btn">📥 Export as Text</button>
       </div>
     </div>
   </div>
@@ -473,6 +741,23 @@ const PS_RULES = [
         end:   match.index + match[1].length + match[2].length + match[3].length,
         text:  "[REDACTED_SECRET]"
       };
+    }
+  },
+  {
+    id: "inject",
+    label: "Detect Prompt Injections",
+    token: "[INJECTION_DETECTED]",
+    patterns: [
+      /\b(?:ignore|disregard|forget|override|bypass|skip)\s+(?:all\s+)?(?:previous|prior|above|earlier|preceding)\s+(?:instructions?|prompts?|rules?|guidelines?|constraints?)\b/gi,
+      /\b(?:you\s+are\s+now|act\s+as|pretend\s+to\s+be|roleplay\s+as|impersonate)\s+(?:a\s+)?(?:different|new|another|evil|jailbroken|unrestricted)\b/gi,
+      /\b(?:system\s+prompt|system\s+message)\s*(?:=|:\s*)/gi,
+      /\b(?:do\s+not\s+follow|disobey|defy|ignore)\s+(?:your\s+)?(?:programming|training|guidelines|rules|instructions?|constraints?|restrictions?)\b/gi,
+      /\b(?:jailbreak|DAN|do\s+anything\s+now)\b/gi,
+      /\b(?:reveal|show|print|output|leak|expose)\s+(?:your\s+)?(?:system\s+prompt|hidden\s+prompt|initial\s+prompt|secret\s+prompt)\b/gi,
+      /\b(?:new\s+instructions?|updated\s+instructions?|new\s+rules?|updated\s+rules?|new\s+guidelines?|updated\s+guidelines?)\s*(?:=|:\s*)/gi
+    ],
+    filter: function (matched, m) {
+      return !/^\[REDACTED_[A-Z_]*\]$/.test(m[0]);
     }
   },
   {
@@ -664,7 +949,7 @@ function PS_sourceDump() {
 
   function colorFor(id) {
     return ({ keys: "#d97706", dburl: "#ea580c", network: "#0284c7", email: "#7c3aed",
-              phone: "#059669", creds: "#e11d48", custom: "#c026d3" })[id] || "#94a3b8";
+              phone: "#059669", creds: "#e11d48", custom: "#c026d3", inject: "#dc2626" })[id] || "#94a3b8";
   }
 
   /* ── The custom-regex inputs only matter when its toggle is on. ── */
@@ -850,6 +1135,423 @@ function PS_sourceDump() {
   compileCustom();
   render();
   $input.focus();
+
+  /* ══════════════════════════════════════════════════════════════════
+     NEW FEATURES — Theme, Compression, Injection, Reversible, Templates,
+     Export, Keyboard Shortcuts, REST API, CLI, MCP
+     ══════════════════════════════════════════════════════════════════ */
+
+  /* ── Theme Toggle ── */
+  const root = document.documentElement;
+  const themeBtn = document.getElementById("btn-theme");
+
+  function setTheme(theme) {
+    if (theme === "dark") {
+      root.setAttribute("data-theme", "dark");
+      themeBtn.textContent = "☀️";
+    } else {
+      root.setAttribute("data-theme", "light");
+      themeBtn.textContent = "🌙";
+    }
+  }
+
+  setTheme("light");
+  themeBtn.addEventListener("click", function () {
+    const current = root.getAttribute("data-theme") === "dark" ? "dark" : "light";
+    setTheme(current === "dark" ? "light" : "dark");
+  });
+
+  /* ── Compression ── */
+  const $compressResult = document.getElementById("compress-result");
+  const $compressOriginal = document.getElementById("compress-original");
+  const $compressCompressed = document.getElementById("compress-compressed");
+  const $compressSavings = document.getElementById("compress-savings");
+
+  function estimateTokens(text) {
+    return Math.ceil(text.length / 4);
+  }
+
+  function compressText(text) {
+    // Remove duplicate lines
+    const lines = text.split("\n");
+    const seen = new Set();
+    const unique = [];
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed && !seen.has(trimmed)) {
+        seen.add(trimmed);
+        unique.push(line);
+      } else if (!trimmed) {
+        unique.push(line);
+      }
+    }
+
+    // Collapse multiple spaces
+    let result = unique.join("\n").replace(/ {2,}/g, " ");
+
+    // Strip common log timestamps
+    result = result.replace(/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}[.,]?\d*\s*/gm, "");
+
+    // Strip common log level prefixes
+    result = result.replace(/\b(DEBUG|INFO|WARN|ERROR|TRACE|FATAL)\s+/g, "");
+
+    // Strip ANSI escape codes
+    result = result.replace(/\x1b\[[0-9;]*m/g, "");
+
+    return result;
+  }
+
+  document.getElementById("btn-compress").addEventListener("click", function () {
+    const text = $input.value;
+    if (!text.trim()) return;
+
+    const scrubbed = PS_apply(text, PS_scan(text, enabled)).plain;
+    const compressed = compressText(scrubbed);
+    const origTokens = estimateTokens(text);
+    const compTokens = estimateTokens(compressed);
+    const savings = origTokens > 0 ? Math.round((1 - compTokens / origTokens) * 100) : 0;
+
+    $compressOriginal.textContent = origTokens.toLocaleString();
+    $compressCompressed.textContent = compTokens.toLocaleString();
+    $compressSavings.textContent = savings + "%";
+    $compressResult.classList.remove("hidden");
+  });
+
+  /* ── Injection Detection ── */
+  const $injectionResult = document.getElementById("injection-result");
+  const $injectionList = document.getElementById("injection-list");
+
+  document.getElementById("btn-injection").addEventListener("click", function () {
+    const text = $input.value;
+    if (!text.trim()) return;
+
+    const ranges = PS_scan(text, new Set(["inject"]));
+    $injectionList.innerHTML = "";
+
+    if (ranges.length === 0) {
+      $injectionList.innerHTML = '<p class="text-[12px] font-semibold text-emerald-600">✓ No prompt injection patterns detected.</p>';
+    } else {
+      ranges.forEach(function (r) {
+        const ctx = Math.max(0, r.start - 30);
+        const ctxEnd = Math.min(text.length, r.end + 30);
+        const before = PS_esc(text.slice(ctx, r.start));
+        const match = PS_esc(r.text);
+        const after = PS_esc(text.slice(r.end, ctxEnd));
+
+        const div = document.createElement("div");
+        div.className = "rounded-lg border border-red-200 bg-red-50 p-3";
+        div.innerHTML = '<span class="text-[11px] font-semibold text-red-700">⚠ Potential injection:</span>' +
+          '<p class="mono mt-1 text-[11px] text-red-800">' + before + '<mark class="hl hl-inject">' + match + "</mark>" + after + "</p>";
+        $injectionList.appendChild(div);
+      });
+    }
+    $injectionResult.classList.remove("hidden");
+  });
+
+  /* ── Reversible Redaction ── */
+  const $reversibleResult = document.getElementById("reversible-result");
+  const $reversibleKey = document.getElementById("reversible-key");
+  const $restoreResult = document.getElementById("restore-result");
+  const $restoreInput = document.getElementById("restore-input");
+  const $restoreOutput = document.getElementById("restore-output");
+  let lastMapping = null;
+
+  document.getElementById("btn-reversible").addEventListener("click", function () {
+    const text = $input.value;
+    if (!text.trim()) return;
+
+    const ranges = PS_scan(text, enabled);
+    const mapping = {};
+
+    ranges.forEach(function (r, i) {
+      const placeholder = "[[PS_REDACT_" + i + "]]";
+      mapping[placeholder] = {
+        original: text.slice(r.start, r.end),
+        rule: r.rule
+      };
+    });
+
+    lastMapping = { mapping: mapping, text: PS_apply(text, ranges).plain };
+    $reversibleKey.textContent = JSON.stringify(lastMapping, null, 2);
+    $reversibleResult.classList.remove("hidden");
+    $restoreResult.classList.add("hidden");
+  });
+
+  document.getElementById("btn-copy-key").addEventListener("click", function () {
+    if (!lastMapping) return;
+    const json = JSON.stringify(lastMapping, null, 2);
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(json);
+    }
+  });
+
+  document.getElementById("btn-restore").addEventListener("click", function () {
+    if (!lastMapping) return;
+    $restoreResult.classList.remove("hidden");
+    $restoreOutput.textContent = "Paste redacted text above and it will be restored here. (Auto-restores as you type)";
+  });
+
+  $restoreInput.addEventListener("input", function () {
+    if (!lastMapping) return;
+    let restored = $restoreInput.value;
+    const mapping = lastMapping.mapping;
+    for (const [placeholder, data] of Object.entries(mapping)) {
+      restored = restored.split(placeholder).join(data.original);
+    }
+    $restoreOutput.textContent = restored;
+  });
+
+  /* ── Templates ── */
+  const PS_TEMPLATES = [
+    {
+      name: "Incident Report",
+      content: "Date: [DATE]\nSeverity: [SEVERITY]\nService: [SERVICE_NAME]\n\nDescription:\n[DESCRIBE_THE_ISSUE]\n\nSteps to Reproduce:\n1. [STEP_1]\n2. [STEP_2]\n\nExpected: [EXPECTED_BEHAVIOR]\nActual: [ACTUAL_BEHAVIOR]\n\nLogs:\n[PASTE_LOGS_HERE]\n\nEnvironment:\n- OS: [OS]\n- Version: [VERSION]\n- Region: [REGION]"
+    },
+    {
+      name: "Code Review",
+      content: "Repository: [REPO_NAME]\nBranch: [BRANCH]\nCommit: [COMMIT_HASH]\n\nChanges Summary:\n[SUMMARIZE_CHANGES]\n\nCode:\n```\n[PASTE_CODE_HERE]\n```\n\nReview Focus:\n- [FOCUS_AREA_1]\n- [FOCUS_AREA_2]\n\nRelated Issues:\n[ISSUE_LINKS]"
+    },
+    {
+      name: "Debug Session",
+      content: "Error Message:\n[ERROR_MESSAGE]\n\nStack Trace:\n```\n[PASTE_STACK_TRACE]\n```\n\nEnvironment:\n- Runtime: [RUNTIME]\n- OS: [OS]\n- Dependencies: [DEPENDENCY_LIST]\n\nAttempted Fixes:\n1. [FIX_1]\n2. [FIX_2]\n\nReproduction:\n[REPRO_STEPS]"
+    },
+    {
+      name: "Config Dump",
+      content: "Application: [APP_NAME]\nEnvironment: [ENV]\n\nConfiguration:\n```\n[PASTE_CONFIG_HERE]\n```\n\nIssue:\n[DESCRIBE_ISSUE]\n\nExpected Behavior:\n[EXPECTED]\n\nActual Behavior:\n[ACTUAL]"
+    },
+    {
+      name: "API Integration Help",
+      content: "API: [API_NAME]\nEndpoint: [ENDPOINT]\nMethod: [METHOD]\n\nRequest:\n```\n[PASTE_REQUEST]\n```\n\nResponse:\n```\n[PASTE_RESPONSE]\n```\n\nProblem:\n[DESCRIBE_PROBLEM]\n\nWhat I tried:\n[ATTEMPTED_SOLUTIONS]"
+    },
+    {
+      name: "Database Query Help",
+      content: "Database: [DB_TYPE]\nVersion: [DB_VERSION]\n\nSchema:\n```sql\n[PASTE_SCHEMA]\n```\n\nQuery:\n```sql\n[PASTE_QUERY]\n```\n\nError:\n[ERROR_MESSAGE]\n\nExpected:\n[EXPECTED_BEHAVIOR]\n\nActual:\n[ACTUAL_BEHAVIOR]"
+    }
+  ];
+
+  const $templatesContent = document.getElementById("templates-content");
+  const $templateList = document.getElementById("template-list");
+
+  PS_TEMPLATES.forEach(function (tpl) {
+    // Modal list item
+    const item = document.createElement("div");
+    item.className = "rounded-lg border border-slate-200 p-3 cursor-pointer transition hover:border-indigo-300 hover:bg-indigo-50/60";
+    item.innerHTML = '<p class="text-[13px] font-semibold text-slate-800">' + PS_esc(tpl.name) + "</p>" +
+      '<p class="mt-1 text-[11px] text-slate-500">Click to load template</p>';
+    item.addEventListener("click", function () {
+      $input.value = tpl.content;
+      render();
+      closeModal(document.getElementById("modal-templates"));
+    });
+    $templatesContent.appendChild(item);
+
+    // Card grid item
+    const card = document.createElement("button");
+    card.className = "ps-btn justify-start";
+    card.textContent = "📋 " + tpl.name;
+    card.addEventListener("click", function () {
+      $input.value = tpl.content;
+      render();
+    });
+    $templateList.appendChild(card);
+  });
+
+  document.getElementById("btn-templates").addEventListener("click", function () {
+    openModal(document.getElementById("modal-templates"));
+  });
+
+  /* ── Export ── */
+  document.getElementById("btn-export").addEventListener("click", function () {
+    openModal(document.getElementById("modal-export"));
+  });
+
+  document.getElementById("btn-export-json").addEventListener("click", function () {
+    const text = $input.value;
+    if (!text.trim()) return;
+    const ranges = PS_scan(text, enabled);
+    const counts = {};
+    ranges.forEach(function (r) { counts[r.rule] = (counts[r.rule] || 0) + 1; });
+    const report = {
+      timestamp: new Date().toISOString(),
+      input_length: text.length,
+      total_redactions: ranges.length,
+      by_rule: counts,
+      rules_active: Array.from(enabled),
+      redactions: ranges.map(function (r) {
+        return { rule: r.rule, token: r.text, position: r.start };
+      })
+    };
+    downloadFile("promptsafe-report.json", JSON.stringify(report, null, 2), "application/json");
+  });
+
+  document.getElementById("btn-export-csv").addEventListener("click", function () {
+    const text = $input.value;
+    if (!text.trim()) return;
+    const ranges = PS_scan(text, enabled);
+    let csv = "Rule,Token,Position\n";
+    ranges.forEach(function (r) {
+      csv += r.rule + "," + r.text + "," + r.start + "\n";
+    });
+    downloadFile("promptsafe-report.csv", csv, "text/csv");
+  });
+
+  document.getElementById("btn-export-text").addEventListener("click", function () {
+    const text = $input.value;
+    if (!text.trim()) return;
+    const ranges = PS_scan(text, enabled);
+    let txt = "PromptSafe Redaction Report\n";
+    txt += "Generated: " + new Date().toISOString() + "\n";
+    txt += "Total redactions: " + ranges.length + "\n\n";
+    const counts = {};
+    ranges.forEach(function (r) { counts[r.rule] = (counts[r.rule] || 0) + 1; });
+    for (const [rule, count] of Object.entries(counts)) {
+      txt += rule + ": " + count + "\n";
+    }
+    downloadFile("promptsafe-report.txt", txt, "text/plain");
+  });
+
+  function downloadFile(filename, content, type) {
+    const blob = new Blob([content], { type: type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  /* ── Keyboard Shortcuts ── */
+  document.getElementById("btn-shortcuts").addEventListener("click", function () {
+    openModal(document.getElementById("modal-shortcuts"));
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+      closeModal(document.getElementById("modal-templates"));
+      closeModal(document.getElementById("modal-shortcuts"));
+      closeModal(document.getElementById("modal-export"));
+      return;
+    }
+    if (e.ctrlKey || e.metaKey) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        render();
+      } else if (e.key === "c" && document.activeElement !== $input) {
+        e.preventDefault();
+        $copy.click();
+      } else if (e.key === "z") {
+        e.preventDefault();
+        document.getElementById("btn-clear").click();
+      } else if (e.key === "t") {
+        e.preventDefault();
+        themeBtn.click();
+      }
+    }
+  });
+
+  /* ── REST API (for integration into pipelines) ── */
+  // Expose a minimal API on window for programmatic access
+  window.PromptSafeAPI = {
+    scrub: function (text) {
+      const ranges = PS_scan(text, enabled);
+      return PS_apply(text, ranges).plain;
+    },
+    scan: function (text) {
+      return PS_scan(text, enabled);
+    },
+    compress: function (text) {
+      return compressText(text);
+    },
+    detectInjections: function (text) {
+      return PS_scan(text, new Set(["inject"]));
+    },
+    getRules: function () {
+      return PS_RULES.map(function (r) {
+        return { id: r.id, label: r.label, token: r.token };
+      });
+    },
+    version: "2.0.0"
+  };
+
+  /* ── MCP Tool Definition (for AI agents) ── */
+  window.PromptSafeMCP = {
+    name: "promptsafe",
+    description: "Scrub secrets, PII, and sensitive data from text before sending to AI models",
+    tools: [
+      {
+        name: "scrub_text",
+        description: "Redact all secrets, API keys, PII, and sensitive data from text",
+        inputSchema: {
+          type: "object",
+          properties: {
+            text: { type: "string", description: "The text to scrub" }
+          },
+          required: ["text"]
+        },
+        handler: function (args) {
+          return window.PromptSafeAPI.scrub(args.text);
+        }
+      },
+      {
+        name: "detect_injections",
+        description: "Detect potential prompt injection patterns in text",
+        inputSchema: {
+          type: "object",
+          properties: {
+            text: { type: "string", description: "The text to scan" }
+          },
+          required: ["text"]
+        },
+        handler: function (args) {
+          return window.PromptSafeAPI.detectInjections(args.text);
+        }
+      },
+      {
+        name: "compress_text",
+        description: "Compress text to reduce token count while preserving meaning",
+        inputSchema: {
+          type: "object",
+          properties: {
+            text: { type: "string", description: "The text to compress" }
+          },
+          required: ["text"]
+        },
+        handler: function (args) {
+          return window.PromptSafeAPI.compress(args.text);
+        }
+      },
+      {
+        name: "list_rules",
+        description: "List all available redaction rules",
+        inputSchema: { type: "object", properties: {} },
+        handler: function () {
+          return window.PromptSafeAPI.getRules();
+        }
+      }
+    ]
+  };
+
+  /* ── CLI Mode (for Node.js stdin/stdout pipeline) ── */
+  // When running under Node.js with --cli flag
+  if (typeof process !== "undefined" && process.versions && process.versions.node) {
+    const args = process.argv.slice(2);
+    if (args.indexOf("--cli") !== -1) {
+      let input = "";
+      process.stdin.setEncoding("utf8");
+      process.stdin.on("data", function (chunk) { input += chunk; });
+      process.stdin.on("end", function () {
+        // Load the engine from this file
+        const engineSource = document.currentScript ? "" : "";
+        // In CLI mode, we eval the PS_RULES and PS_scan/PS_apply from this script
+        const enabled = new Set(PS_RULES.map(function (r) { return r.id; }));
+        const ranges = PS_scan(input, enabled);
+        const result = PS_apply(input, ranges);
+        process.stdout.write(result.plain);
+      });
+    }
+  }
 })();
 
 /* ── One-click sample: every rule should light up on this. ── */

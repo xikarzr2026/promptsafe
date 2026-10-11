@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "PromptSafe — Secret Scrubber",
+  "version": "1.0",
+  "description": "Strip API keys, secrets, PII, and sensitive data from text before pasting into AI chats.",
+  "permissions": ["contextMenus", "activeTab"],
+  "action": {
+    "default_icon": {
+      "16": "icons/shield-16.png",
+      "48": "icons/shield-48.png",
+      "128": "icons/shield-128.png"
+    },
+    "default_title": "PromptSafe — Scrub Secrets"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "icons/shield-16.png",
+    "48": "icons/shield-48.png",
+    "128": "icons/shield-128.png"
+  }
+}
