@@ -79,9 +79,22 @@ test("JWT token", () => {
 });
 
 test("Password with equals", () => {
-  const r = PS_apply('password="hunter2"', PS_scan('password="hunter2"', enabled));
+  const r = PS_apply('password="sample_value"', PS_scan('password="sample_value"', enabled));
   assert(r.plain.includes("password="), "Key name should be preserved");
-  assert(!r.plain.includes("hunter2"), "Password value not redacted");
+  assert(!r.plain.includes("sample_value"), "Password value not redacted");
+});
+
+test("Quoted password containing spaces is fully redacted", () => {
+  const input = 'password="my pass word"';
+  const r = PS_apply(input, PS_scan(input, enabled));
+  assertEqual(r.plain, 'password="[REDACTED_SECRET]"', "Quoted password value should be replaced as a whole");
+});
+
+test("Quoted password with escaped quotes is fully redacted", () => {
+  const input = 'password="my \\\"quoted\\\" pass"';
+  const r = PS_apply(input, PS_scan(input, enabled));
+  assert(!r.plain.includes("quoted"), "Escaped-quote password content should be redacted");
+  assert(r.plain.startsWith('password="[REDACTED_SECRET]'), "Key and opening quote should remain");
 });
 
 test("Connection string", () => {
@@ -97,6 +110,15 @@ test("IPv4 address", () => {
 test("Email address", () => {
   const r = PS_apply("send to ops@example.com", PS_scan("send to ops@example.com", enabled));
   assert(!r.plain.includes("ops@example.com"), "Email not redacted");
+});
+
+test("Malformed long email-like domains are bounded against regex backtracking", () => {
+  const text = "a@" + "a.".repeat(20000) + "a_";
+  const started = Date.now();
+  const ranges = PS_scan(text, new Set(["email"]));
+  const elapsed = Date.now() - started;
+  assertEqual(ranges.length, 0, "Malformed long domain should not be treated as a valid email");
+  assert(elapsed < 1000, `Email scan took ${elapsed}ms on a 40KB malformed input`);
 });
 
 test("Phone number", () => {
@@ -148,7 +170,7 @@ test("pkg@version survives", () => {
 
 // ─── Structural invariants ────────────────────────────────────────────────
 test("Ranges are sorted and non-overlapping", () => {
-  const input = "key: sk-abc123def456ghi789, pass: hunter2, ip: 10.0.0.1";
+  const input = "key: sk-abc123def456ghi789, pass: sample_value, ip: 10.0.0.1";
   const ranges = PS_scan(input, enabled);
   for (let i = 1; i < ranges.length; i++) {
     assert(ranges[i].start >= ranges[i-1].end, `Range ${i} overlaps previous`);
@@ -167,7 +189,7 @@ test("All ranges are in-bounds", () => {
 
 // ─── Idempotence ──────────────────────────────────────────────────────────
 test("Idempotence: scrubbing twice == scrubbing once", () => {
-  const input = "key: sk-abc123def456ghi789, password=hunter2";
+  const input = "key: sk-abc123def456ghi789, password=sample_value";
   const once = PS_apply(input, PS_scan(input, enabled)).plain;
   const twice = PS_apply(once, PS_scan(once, enabled)).plain;
   assertEqual(once, twice, "Second pass should not change output");
@@ -175,14 +197,14 @@ test("Idempotence: scrubbing twice == scrubbing once", () => {
 
 // ─── Passthrough when all rules off ───────────────────────────────────────
 test("All rules off = byte-identical passthrough", () => {
-  const input = "key: sk-abc123def456ghi789, password=hunter2";
+  const input = "key: sk-abc123def456ghi789, password=sample_value";
   const r = PS_apply(input, PS_scan(input, new Set()));
   assertEqual(r.plain, input, "Should be byte-identical");
 });
 
 // ─── Determinism ──────────────────────────────────────────────────────────
 test("Determinism: same input = same output", () => {
-  const input = "key: sk-abc123def456ghi789, password=hunter2, ip: 10.0.0.1";
+  const input = "key: sk-abc123def456ghi789, password=sample_value, ip: 10.0.0.1";
   const r1 = PS_apply(input, PS_scan(input, enabled));
   const r2 = PS_apply(input, PS_scan(input, enabled));
   assertEqual(r1.plain, r2.plain, "Outputs should be identical");

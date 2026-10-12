@@ -4,21 +4,17 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="color-scheme" content="light dark" />
-<meta name="description" content="PromptSafe — a 100% client-side privacy scrubber that removes API keys, IPs, emails and credentials from text before you paste it into an AI chat. No database, nothing seen, nothing saved." />
+<meta name="referrer" content="no-referrer" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-giWZi9e4D3rLfcL3rbWNjRUKc/Hz8zA8fMs9Hhziz/8='; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'none'; worker-src blob:; object-src 'none'; base-uri 'none'; form-action 'none'" />
+<meta name="description" content="PromptSafe processes pasted text locally in your browser tab. It detects common secret formats, but is not a complete guarantee; review results before sharing." />
 <title>PromptSafe — Client-Side Secret Scrubber</title>
 <!-- Inline SVG favicon: no extra network request. -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%236366f1'/%3E%3Cstop offset='1' stop-color='%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='url(%23g)' d='M16 2 5 7v9c0 7 4.7 12.3 11 14 6.3-1.7 11-7 11-14V7z'/%3E%3Cpath d='M11 15.6l3.2 3.2 6.4-7.3' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
 
-<!-- Tailwind (Play CDN) — the ONLY external resource this app loads. -->
-<script src="https://cdn.tailwindcss.com"></script>
+<!-- Static CSS is bundled with the app; no third-party code runs in this page. -->
+<link rel="stylesheet" href="assets/promptsafe.css" />
 
-<!--
-  Offline safety net.
-  The CDN <script> injects its stylesheet into <head> *after* this block,
-  so when Tailwind is present its utilities win; when the CDN is blocked the
-  rules below still give PromptSafe a usable light layout. All *logic* is inline,
-  so the app is fully functional with the network unplugged after first load.
--->
+<!-- Local fallback and application-specific styles. The app has no remote runtime dependencies. -->
 <style>
   :root {
     color-scheme: light;
@@ -278,7 +274,7 @@
         <div class="flex items-center gap-2">
           <h1 class="text-lg font-bold tracking-tight text-slate-900">PromptSafe</h1>
           <span class="rounded-md border border-indigo-100 bg-indigo-50 px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-indigo-600"
-                title="PromptSafe v1.2 — light theme, connection-string rule, verification sweep">v1.2</span>
+                title="PromptSafe v2.1 — local-only processing with explicit safety limits">v2.1</span>
         </div>
         <p class="text-[11px] text-slate-500">scrub secrets before you paste</p>
       </div>
@@ -291,7 +287,7 @@
         <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
         <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
       </span>
-      🔒 100% Client-Side • Zero Data Leaves Your Browser
+      🔒 Local processing • Review before sharing
     </button>
 
     <div class="ml-auto ps-wrap">
@@ -319,17 +315,10 @@
     </div>
     <div class="min-w-0">
       <p class="text-[15px] font-bold tracking-tight text-slate-900 sm:text-base">
-        Privacy statement — no database, nothing seen, nothing saved.
+        Privacy — text is processed locally; detection is not a guarantee.
       </p>
       <p class="mt-1 max-w-3xl text-[13.5px] leading-relaxed text-slate-600 sm:text-sm">
-        PromptSafe operates entirely within your browser. There is <b class="font-semibold text-slate-700">no server-side component,
-        no database, no user accounts, no cookies and no analytics</b>. All text you enter is processed locally in this tab by
-        client-side JavaScript; no portion of it is transmitted, logged, persisted or stored on any device or server. Because no
-        backend exists, there is no copy of your data to retain, and closing this tab discards it permanently. This claim is
-        independently verifiable: open your browser's developer tools
-        (<kbd class="rounded border border-slate-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-slate-600">F12</kbd>),
-        select the <b class="font-semibold text-slate-700">Network</b> tab, and confirm that no requests are issued while text is
-        being processed.
+        PromptSafe performs redaction locally in this browser tab; it does not send pasted text to a PromptSafe server or save it in browser storage. The app uses bundled static CSS and JavaScript, with no third-party runtime scripts. If you use the hosted copy, the hosting provider still receives the page request and may keep standard access logs. Regex detection is incomplete, so review the output before sharing. Verify the no-egress processing claim in Developer Tools → Network after the page has loaded.
       </p>
     </div>
   </section>
@@ -347,7 +336,7 @@
       <textarea id="input" spellcheck="false" autocapitalize="off" autocomplete="off" wrap="off"
         class="ps-panel ps-scroll ps-focus w-full flex-1 resize-none rounded-xl border border-slate-200 bg-slate-50/70 p-3 text-[12.5px] leading-relaxed text-slate-800 placeholder-slate-400 transition hover:border-slate-300 focus:bg-white"
         placeholder="Paste raw logs, code, config files, or prompts here..."></textarea>
-      <p class="mt-2 text-[11px] text-slate-500">Nothing is sent anywhere. Every byte stays in this tab.</p>
+      <p class="mt-2 text-[11px] text-slate-500">Processed locally in this tab. The detector can miss secrets; review before sharing.</p>
     </section>
 
     <!-- RIGHT: sanitized output -->
@@ -385,13 +374,13 @@
       <div class="grid gap-3 sm:grid-cols-[1fr_14rem]">
         <label class="block">
           <span class="mb-1 block text-[11px] font-semibold text-slate-500">Custom pattern (JavaScript regular expression)</span>
-          <input id="custom-re" type="text" spellcheck="false"
+          <input id="custom-re" type="text" maxlength="500" spellcheck="false"
             class="ps-focus mono w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-800 placeholder-slate-400"
             placeholder="e.g.  ACME-[0-9]{6}   or   \bsession=[A-Za-z0-9_-]{8,}" />
         </label>
         <label class="block">
           <span class="mb-1 block text-[11px] font-semibold text-slate-500">Replacement token</span>
-          <input id="custom-token" type="text" spellcheck="false" value="[REDACTED_CUSTOM]"
+          <input id="custom-token" type="text" maxlength="128" spellcheck="false" value="[REDACTED_CUSTOM]"
             class="ps-focus mono w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-800" />
         </label>
       </div>
@@ -416,11 +405,13 @@
     </div>
     <div id="compress-result" class="hidden rounded-xl border border-slate-200 bg-slate-50/70 p-3">
       <div class="ps-wrap gap-4">
-        <span class="mono text-[11px] text-slate-500">Original: <strong id="compress-original" class="text-slate-800">0</strong> tokens</span>
-        <span class="mono text-[11px] text-slate-500">Compressed: <strong id="compress-compressed" class="text-slate-800">0</strong> tokens</span>
-        <span class="mono text-[11px] font-semibold text-emerald-600">Savings: <strong id="compress-savings">0%</strong></span>
+        <span class="mono text-[11px] text-slate-500">Estimated original tokens: <strong id="compress-original" class="text-slate-800">0</strong></span>
+        <span class="mono text-[11px] text-slate-500">Estimated compressed tokens: <strong id="compress-compressed" class="text-slate-800">0</strong></span>
+        <span class="mono text-[11px] font-semibold text-emerald-600">Estimated savings: <strong id="compress-savings">0%</strong></span>
       </div>
-      <p class="mt-2 text-[11px] text-slate-500">Compression removes duplicate lines, collapses whitespace, and strips common log boilerplate. Secrets are still redacted.</p>
+      <p class="mt-2 text-[11px] text-amber-700">Lossy log cleanup: repeated lines, timestamps, and log levels may be removed. Estimates use characters ÷ 4, not a model tokenizer. Review the output before using it.</p>
+      <pre id="compress-output" class="ps-scroll mono mt-2 max-h-64 overflow-auto whitespace-pre-wrap rounded-lg border border-slate-200 bg-white p-3 text-xs"></pre>
+      <button id="btn-copy-compressed" type="button" class="ps-btn mt-2" disabled>📋 Copy compressed text</button>
     </div>
   </section>
 
@@ -448,14 +439,20 @@
       </div>
     </div>
     <div id="reversible-result" class="hidden rounded-xl border border-slate-200 bg-slate-50/70 p-3">
-      <p class="mb-2 text-[11px] text-slate-500">This generates a JSON mapping of redactions. Save it locally to restore the original text later. The key never leaves your browser.</p>
+      <p class="mb-2 text-[11px] text-amber-700">The mapping key contains the original secret values. Treat it like a password. Copy Key writes those originals to your system clipboard; Clear All removes the in-page copy.</p>
       <pre id="reversible-key" class="ps-scroll ps-code mono max-h-40 overflow-auto p-3 text-[11px]"></pre>
       <div class="ps-wrap mt-2">
-        <button id="btn-copy-key" type="button" class="ps-btn">📋 Copy Key</button>
+        <button id="btn-copy-key" type="button" class="ps-btn">📋 Copy Key (contains originals)</button>
+        <button id="btn-copy-reversible-text" type="button" class="ps-btn">📋 Copy reversible text</button>
         <button id="btn-restore" type="button" class="ps-btn">🔄 Restore from Key</button>
       </div>
       <div id="restore-result" class="mt-2 hidden">
-        <textarea id="restore-input" class="ps-focus mono w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-800" rows="4" placeholder="Paste redacted text here..."></textarea>
+        <label class="mb-2 block text-[11px] font-semibold text-slate-500">Mapping key JSON (contains originals)
+          <textarea id="restore-key-input" class="ps-focus mono mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-800" rows="4" placeholder="Paste the saved mapping key JSON..."></textarea>
+        </label>
+        <label class="block text-[11px] font-semibold text-slate-500">Text with PromptSafe placeholders
+          <textarea id="restore-input" class="ps-focus mono mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-800" rows="4" placeholder="Paste the matching reversible text..."></textarea>
+        </label>
         <pre id="restore-output" class="ps-scroll ps-code mono mt-2 max-h-40 overflow-auto p-3 text-[11px]"></pre>
       </div>
     </div>
@@ -471,12 +468,10 @@
   </section>
 
   <footer class="mt-6 rounded-xl border border-slate-200 bg-white/70 px-4 py-3 text-[11px] leading-relaxed text-slate-500">
-    <p><b class="font-semibold text-slate-600">PromptSafe v1.2 runs entirely in your browser.</b> No backend, no database, no cookies,
-       no telemetry and no analytics — nothing you paste is ever seen or saved by this page. The only network request it makes is the
-       Tailwind stylesheet at load; all text processing is performed locally and transmits nothing.</p>
+    <p><b class="font-semibold text-slate-600">PromptSafe v2.1 processes text in this browser tab.</b> First-party processing makes no network requests and stores no input in browser storage. The page loads bundled local assets. A remote host may log the initial page request; regex-based detection can miss secrets, so inspect the output before sharing.</p>
     <p class="mt-1"><a href="https://github.com/xikarzr2026/promptsafe" target="_blank" rel="noopener noreferrer"
        class="font-semibold text-indigo-600 underline underline-offset-2 hover:text-indigo-500">Source on GitHub</a>
-       · MIT licensed · self-host it as a single file.</p>
+       · MIT licensed · self-host the static files.</p>
   </footer>
 </main>
 
@@ -491,18 +486,14 @@
     <div class="ps-scroll px-5 py-4 text-sm leading-relaxed text-slate-600">
 
       <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-        <p class="font-semibold text-emerald-800">Plain-English guarantee</p>
-        <p class="mt-1.5 text-emerald-900/90">This web app has <b>no backend server, no cookies, no tracking pixels, and no database</b>.
-        Nothing you type here is seen or saved by this website. You can verify that yourself by opening your browser's Developer Tools
-        <span class="mono ps-code-inline text-xs">F12</span> →
-        <b>Network</b> tab, and noting that <b>0 requests are sent when you scrub text</b>.
-        Type, paste, toggle rules — the request list stays empty. The app is one HTML file; there is nowhere for your data to go.</p>
+        <p class="font-semibold text-emerald-800">What happens to pasted text</p>
+        <p class="mt-1.5 text-emerald-900/90">The bundled first-party code processes text locally and does not send it to a PromptSafe server. The page loads only local CSS and JavaScript assets; a hosted service may still log the initial page request. Open Developer Tools → <b>Network</b>, clear the list after load, then scrub text to verify no processing requests occur. Regex detection is incomplete: always review the result before sharing.</p>
       </div>
 
       <ol class="mt-4 list-decimal space-y-2 pl-5">
         <li><b>Open DevTools now</b> (<span class="mono ps-code-inline text-xs">F12</span>), click the <b>Network</b> tab, and clear it.</li>
         <li><b>Paste a secret</b> into the left panel. Watch the output redact instantly.</li>
-        <li><b>Look at Network.</b> Nothing fires. Repeat with the Console tab open — no errors, no beacons.</li>
+        <li><b>Look at Network.</b> Scrubbing makes no outbound HTTP(S) request; a custom-regex scan may show a local <span class="mono ps-code-inline">blob:</span> worker. Check the Console for errors.</li>
         <li><b>Disconnect the internet</b> (or choose "Offline" in the Network tab's throttling menu) and keep scrubbing. It still works.</li>
         <li><b>Read the code</b> below — it is not a screenshot, it is the exact function objects currently loaded in this page.</li>
       </ol>
@@ -534,7 +525,7 @@
 
       <div class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
         <p class="font-semibold text-slate-800">Self-host it in 30 seconds</p>
-        <p class="mt-1.5 text-[13px]">Don't trust us — trust your own copy. Clone the repo and open the file locally:</p>
+        <p class="mt-1.5 text-[13px]">Don't trust us — audit or run your local copy. Clone the repository and open <span class="mono">index.html</span> with its bundled assets:</p>
         <pre class="mono ps-scroll ps-code mt-2 overflow-auto p-3 text-[11.5px]">git clone https://github.com/xikarzr2026/promptsafe.git
 cd promptsafe
 # just open it — there is no build step
@@ -554,7 +545,7 @@ open index.html         # macOS</pre>
   <div class="ps-dialog">
     <div class="flex flex-wrap items-center gap-3 border-b border-slate-200 px-5 py-4">
       <h2 id="source-title" class="text-base font-bold text-slate-900">PromptSafe Source</h2>
-      <span class="rounded-full border border-indigo-100 bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-700">single file · no build step · MIT</span>
+      <span class="rounded-full border border-indigo-100 bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-700">static local assets · no build step · MIT</span>
       <button class="ps-btn ml-auto" data-close type="button" aria-label="Close">✕</button>
     </div>
     <div class="ps-scroll px-5 py-4 text-sm text-slate-600">
@@ -602,7 +593,6 @@ open index.html         # macOS</pre>
       <div class="grid gap-2 sm:grid-cols-2">
         <div class="rounded-lg border border-slate-200 p-3"><kbd class="rounded border border-slate-300 bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-600">Ctrl+Enter</kbd><span class="ml-2 text-[12px]">Scrub text</span></div>
         <div class="rounded-lg border border-slate-200 p-3"><kbd class="rounded border border-slate-300 bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-600">Ctrl+C</kbd><span class="ml-2 text-[12px]">Copy result</span></div>
-        <div class="rounded-lg border border-slate-200 p-3"><kbd class="rounded border border-slate-300 bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-600">Ctrl+Z</kbd><span class="ml-2 text-[12px]">Clear all</span></div>
         <div class="rounded-lg border border-slate-200 p-3"><kbd class="rounded border border-slate-300 bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-600">Ctrl+T</kbd><span class="ml-2 text-[12px]">Toggle theme</span></div>
         <div class="rounded-lg border border-slate-200 p-3"><kbd class="rounded border border-slate-300 bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-600">Esc</kbd><span class="ml-2 text-[12px]">Close modal</span></div>
       </div>
@@ -703,7 +693,8 @@ const PS_RULES = [
     label: "Mask Emails",
     token: "[REDACTED_EMAIL]",
     patterns: [
-      /[A-Za-z0-9._%+-]+@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)*\.[A-Za-z]{2,24}\b/g
+      // Bound local/domain labels and label count to keep malformed input linear-time.
+      /(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9-]{1,63}(?:\.[A-Za-z0-9-]{1,63}){0,125}\.[A-Za-z]{2,24}\b/g
     ]
   },
   {
@@ -726,6 +717,8 @@ const PS_RULES = [
     label: "Mask Passwords & Tokens",
     token: "[REDACTED_SECRET]",
     patterns: [
+      // Preserve quotes while covering multiword values; the worker timeout guards custom regexes.
+      /((?:^|[^A-Za-z0-9])(?:aws_secret_access_key|secret_access_key|secret_key|private_key|client_secret|api[_-]?key|apikey|access[_-]?key|access[_-]?token|auth[_-]?token|refresh[_-]?token|db[_-]?password|admin[_-]?password|password|passwd|pwd|passphrase|secret|token)\b["']?\s*(?:=|:|=>|:=)\s*)(["'])((?:\\.|(?!\2)[^\r\n])*?)\2/gi,
       /((?:^|[^A-Za-z0-9])(?:aws_secret_access_key|secret_access_key|secret_key|private_key|client_secret|api[_-]?key|apikey|access[_-]?key|access[_-]?token|auth[_-]?token|refresh[_-]?token|db[_-]?password|admin[_-]?password|password|passwd|pwd|passphrase|secret|token)\b["']?\s*(?:=|:|=>|:=)\s*)(["']?)([^\s,;"'`]+)\2/gi
     ],
     // Never re-redact a token we already wrote: keeps repeat scrubs idempotent.
@@ -734,7 +727,7 @@ const PS_RULES = [
       return !/^\[REDACTED_[A-Z_]*\]$/.test(m[3]);
     },
     // Keep the key name and quotes readable, redact only the value:
-    //   password = "hunter2"   ->   password = "[REDACTED_SECRET]"
+    //   password = "sample value"   ->   password = "[REDACTED_SECRET]"
     build: function (match) {
       return {
         start: match.index + match[1].length + match[2].length,
@@ -905,13 +898,21 @@ function PS_sourceDump() {
   const $customRe  = document.getElementById("custom-re");
   const $customTok = document.getElementById("custom-token");
   const $customMsg = document.getElementById("custom-msg");
+  const $outHint = document.getElementById("out-hint");
+  const defaultOutHint = $outHint.innerHTML;
 
   const enabled = new Set();
   const customRule = PS_RULES.filter(function (r) { return r.id === "custom"; })[0];
+  let lastMapping = null;
+  let lastCompressedText = "";
+  let renderRevision = 0;
+  let lastRenderedText = null;
+  let lastRenderedControls = null;
 
   /* ── Build one toggle row per rule, straight from PS_RULES. ── */
   PS_RULES.forEach(function (rule) {
-    enabled.add(rule.id);
+    const enabledByDefault = rule.id !== "inject";
+    if (enabledByDefault) enabled.add(rule.id);
 
     const row = document.createElement("label");
     row.className = "ps-focus flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 " +
@@ -922,7 +923,7 @@ function PS_sourceDump() {
     cb.type = "checkbox";
     cb.id = "rule-" + rule.id;
     cb.className = "sr-only";
-    cb.checked = true;
+    cb.checked = enabledByDefault;
     cb.addEventListener("change", function () {
       if (cb.checked) enabled.add(rule.id); else enabled.delete(rule.id);
       syncCustomRow();
@@ -965,41 +966,169 @@ function PS_sourceDump() {
 
     if (!raw.trim()) {
       $customMsg.className = "mt-2 text-[11px] text-slate-500";
-      $customMsg.textContent = "Applied live with the g flag. Invalid patterns are ignored (never thrown).";
+      $customMsg.textContent = "Custom patterns run in a worker and are stopped after 1 second.";
+      return;
+    }
+    if (raw.length > 500) {
+      $customMsg.className = "mt-2 text-[11px] font-semibold text-rose-600";
+      $customMsg.textContent = "✕ pattern is too long (maximum 500 characters)";
       return;
     }
     try {
       customRule.patterns = [new RegExp(raw, "g")];
       $customMsg.className = "mt-2 text-[11px] font-semibold text-emerald-600";
-      $customMsg.textContent = "✓ valid pattern — matching with the g flag";
+      $customMsg.textContent = "✓ valid pattern — isolated worker with a 1-second timeout";
     } catch (err) {
       $customMsg.className = "mt-2 text-[11px] font-semibold text-rose-600";
       $customMsg.textContent = "✕ invalid regex — ignored (" + err.message + ")";
     }
   }
 
+  function clearDerivedState() {
+    document.getElementById("compress-result").classList.add("hidden");
+    document.getElementById("compress-output").textContent = "";
+    const copyCompressedButton = document.getElementById("btn-copy-compressed");
+    copyCompressedButton.disabled = true;
+    copyCompressedButton.textContent = "📋 Copy compressed text";
+    document.getElementById("injection-result").classList.add("hidden");
+    document.getElementById("injection-list").textContent = "";
+    document.getElementById("reversible-result").classList.add("hidden");
+    document.getElementById("reversible-key").textContent = "";
+    document.getElementById("restore-result").classList.add("hidden");
+    document.getElementById("restore-key-input").value = "";
+    document.getElementById("restore-input").value = "";
+    document.getElementById("restore-output").textContent = "";
+    lastMapping = null;
+    lastCompressedText = "";
+  }
+
+  const customWorkerSource = `self.onmessage = function (event) {
+    const data = event.data;
+    try {
+      const expression = new RegExp(data.pattern, "g");
+      const ranges = [];
+      let match;
+      while ((match = expression.exec(data.text)) !== null) {
+        if (match[0].length === 0) { expression.lastIndex++; continue; }
+        ranges.push({ start: match.index, end: match.index + match[0].length, text: data.token, rule: "custom" });
+      }
+      self.postMessage({ ranges: ranges });
+    } catch (_) {
+      self.postMessage({ error: true });
+    }
+  };`;
+
+  function scanCustomInWorker(text, expression, token) {
+    return new Promise(function (resolve, reject) {
+      if (typeof Worker === "undefined" || typeof Blob === "undefined") {
+        reject(new Error("Custom regex scanning is unavailable in this browser."));
+        return;
+      }
+      const url = URL.createObjectURL(new Blob([customWorkerSource], { type: "text/javascript" }));
+      let worker = null;
+      let timer = null;
+      let finished = false;
+      function finish() {
+        if (finished) return;
+        finished = true;
+        if (timer) clearTimeout(timer);
+        if (worker) worker.terminate();
+        URL.revokeObjectURL(url);
+      }
+      try {
+        worker = new Worker(url);
+        timer = setTimeout(function () {
+          finish();
+          reject(new Error("Custom regex scan timed out; simplify the pattern."));
+        }, 1000);
+        worker.onmessage = function (event) {
+          finish();
+          if (event.data && event.data.error) reject(new Error("Custom regex scan failed."));
+          else resolve(event.data.ranges || []);
+        };
+        worker.onerror = function () {
+          finish();
+          reject(new Error("Custom regex worker failed."));
+        };
+        worker.postMessage({ text: text, pattern: expression.source, token: token });
+      } catch (_) {
+        finish();
+        reject(new Error("Could not start the custom regex worker."));
+      }
+    });
+  }
+
+  function mergeRanges(left, right) {
+    const all = left.concat(right);
+    all.sort(function (a, b) {
+      return a.start - b.start || (b.end - b.start) - (a.end - a.start);
+    });
+    const kept = [];
+    let lastEnd = -1;
+    for (const range of all) {
+      if (range.start >= lastEnd) { kept.push(range); lastEnd = range.end; }
+    }
+    return kept;
+  }
+
+  async function scanText(text, ids) {
+    if (!text) return [];
+    const builtInIds = new Set(Array.from(ids).filter(function (id) { return id !== "custom"; }));
+    const ranges = PS_scan(text, builtInIds);
+    const expression = customRule.patterns[0];
+    if (!ids.has("custom") || !expression) return ranges;
+    const customRanges = await scanCustomInWorker(text, expression, customRule.token);
+    return mergeRanges(ranges, customRanges);
+  }
+
+  function liveSourceDump() {
+    return PS_sourceDump() + "\\n\\n// Custom-regex worker source (terminated after 1 second)\\n" +
+      customWorkerSource + "\\n\\n" + scanCustomInWorker.toString() + "\\n\\n" + scanText.toString();
+  }
+
   /* ── Count + render. ── */
   let pending = null;
 
-  function render() {
+  async function render() {
     const text = $input.value;
+    const controls = Array.from(enabled).sort().join(",") + "|" + $customRe.value + "|" + $customTok.value;
+    if (text !== lastRenderedText || controls !== lastRenderedControls) {
+      clearDerivedState();
+      lastRenderedText = text;
+      lastRenderedControls = controls;
+    }
+    const revision = ++renderRevision;
 
-    // Live input stats (cheap enough to always run).
     const words = text.trim() ? text.trim().split(/\s+/).length : 0;
     const lines = text ? text.split(/\n/).length : 0;
     $inStats.textContent = text.length.toLocaleString() + " chars · " +
                            words.toLocaleString() + " words · " +
                            lines.toLocaleString() + " lines";
+    const active = PS_RULES.filter(function (r) { return enabled.has(r.id); }).length;
+    $ruleCount.textContent = active + " / " + PS_RULES.length + " rules active";
 
-    const ranges = text ? PS_scan(text, enabled) : [];
+    let ranges;
+    try {
+      ranges = await scanText(text, enabled);
+    } catch (error) {
+      if (revision !== renderRevision) return;
+      $output.textContent = "";
+      $outStats.textContent = "scan failed";
+      $report.innerHTML = "";
+      $reportCard.classList.add("hidden");
+      $copy.disabled = true;
+      $outHint.textContent = "Scan failed; copying is disabled. Simplify the custom pattern and try again.";
+      return;
+    }
+    if (revision !== renderRevision) return;
+
     const res = PS_apply(text, ranges);
     $output.innerHTML = res.html;
+    $outHint.innerHTML = defaultOutHint;
 
-    // Per-rule counts.
     const counts = {};
     ranges.forEach(function (r) { counts[r.rule] = (counts[r.rule] || 0) + 1; });
     const total = ranges.length;
-
     $outStats.textContent = total === 1 ? "1 redaction" : total.toLocaleString() + " redactions";
 
     $report.innerHTML = "";
@@ -1016,10 +1145,6 @@ function PS_sourceDump() {
         $report.appendChild(chip);
       });
     }
-
-    // Lifetime state of the action bar.
-    const active = PS_RULES.filter(function (r) { return enabled.has(r.id); }).length;
-    $ruleCount.textContent = active + " / " + PS_RULES.length + " rules active";
     $copy.disabled = text.length === 0;
   }
 
@@ -1055,6 +1180,7 @@ function PS_sourceDump() {
     $customRe.value = "";
     $customTok.value = "[REDACTED_CUSTOM]";
     compileCustom();
+    clearDerivedState();
     render();
     $input.focus();
   });
@@ -1066,11 +1192,8 @@ function PS_sourceDump() {
 
   /* ── Copy (Clipboard API with a legacy fallback). ── */
   let copyTimer = null;
-  $copy.addEventListener("click", function () {
+  $copy.addEventListener("click", async function () {
     const text = $input.value;
-    const ranges = text ? PS_scan(text, enabled) : [];
-    const safe = PS_apply(text, ranges).plain;
-
     const done = function (ok) {
       $copy.textContent = ok ? "✓ Copied!" : "⚠ Copy failed";
       $copy.classList.toggle("ps-btn-copied", ok);
@@ -1081,11 +1204,15 @@ function PS_sourceDump() {
       }, 1600);
     };
 
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(safe).then(function () { done(true); },
-                                               function () { done(legacyCopy(safe)); });
-    } else {
-      done(legacyCopy(safe));
+    try {
+      const ranges = text ? await scanText(text, enabled) : [];
+      const safe = PS_apply(text, ranges).plain;
+      if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(safe);
+      else if (!legacyCopy(safe)) throw new Error("Clipboard unavailable");
+      done(true);
+    } catch (_) {
+      $outHint.textContent = "Copy cancelled: the scan did not complete safely or clipboard access failed.";
+      done(false);
     }
   });
 
@@ -1114,11 +1241,11 @@ function PS_sourceDump() {
   const $source = document.getElementById("modal-source");
 
   document.getElementById("btn-trust").addEventListener("click", function () {
-    document.getElementById("code-trust").textContent = PS_sourceDump();
+    document.getElementById("code-trust").textContent = liveSourceDump();
     openModal($trust);
   });
   document.getElementById("btn-source").addEventListener("click", function () {
-    document.getElementById("code-source").textContent = PS_sourceDump();
+    document.getElementById("code-source").textContent = liveSourceDump();
     openModal($source);
   });
 
@@ -1143,7 +1270,7 @@ function PS_sourceDump() {
 
   /* ══════════════════════════════════════════════════════════════════
      NEW FEATURES — Theme, Compression, Injection, Reversible, Templates,
-     Export, Keyboard Shortcuts, REST API, CLI, MCP
+     Export, Keyboard Shortcuts, in-page API, and optional tool metadata
      ══════════════════════════════════════════════════════════════════ */
 
   /* ── Theme Toggle ── */
@@ -1171,6 +1298,8 @@ function PS_sourceDump() {
   const $compressOriginal = document.getElementById("compress-original");
   const $compressCompressed = document.getElementById("compress-compressed");
   const $compressSavings = document.getElementById("compress-savings");
+  const $compressOutput = document.getElementById("compress-output");
+  const $copyCompressed = document.getElementById("btn-copy-compressed");
 
   function estimateTokens(text) {
     return Math.ceil(text.length / 4);
@@ -1198,7 +1327,7 @@ function PS_sourceDump() {
     result = result.replace(/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}[.,]?\d*\s*/gm, "");
 
     // Strip common log level prefixes
-    result = result.replace(/\b(DEBUG|INFO|WARN|ERROR|TRACE|FATAL)\s+/g, "");
+    result = result.replace(/^(\s*)(?:DEBUG|INFO|WARN|ERROR|TRACE|FATAL)\s+/gm, "$1");
 
     // Strip ANSI escape codes
     result = result.replace(/\x1b\[[0-9;]*m/g, "");
@@ -1206,20 +1335,40 @@ function PS_sourceDump() {
     return result;
   }
 
-  document.getElementById("btn-compress").addEventListener("click", function () {
+  document.getElementById("btn-compress").addEventListener("click", async function () {
     const text = $input.value;
     if (!text.trim()) return;
 
-    const scrubbed = PS_apply(text, PS_scan(text, enabled)).plain;
-    const compressed = compressText(scrubbed);
-    const origTokens = estimateTokens(text);
-    const compTokens = estimateTokens(compressed);
-    const savings = origTokens > 0 ? Math.round((1 - compTokens / origTokens) * 100) : 0;
-
-    $compressOriginal.textContent = origTokens.toLocaleString();
-    $compressCompressed.textContent = compTokens.toLocaleString();
-    $compressSavings.textContent = savings + "%";
+    try {
+      const ranges = await scanText(text, enabled);
+      const scrubbed = PS_apply(text, ranges).plain;
+      lastCompressedText = compressText(scrubbed);
+      const origTokens = estimateTokens(text);
+      const compTokens = estimateTokens(lastCompressedText);
+      const savings = origTokens > 0 ? Math.round((1 - compTokens / origTokens) * 100) : 0;
+      $compressOriginal.textContent = origTokens.toLocaleString();
+      $compressCompressed.textContent = compTokens.toLocaleString();
+      $compressSavings.textContent = savings + "%";
+      $compressOutput.textContent = lastCompressedText;
+      $copyCompressed.disabled = lastCompressedText.length === 0;
+    } catch (_) {
+      lastCompressedText = "";
+      $compressOutput.textContent = "Compression cancelled: scanning did not complete safely.";
+      $copyCompressed.disabled = true;
+    }
     $compressResult.classList.remove("hidden");
+  });
+
+  $copyCompressed.addEventListener("click", async function () {
+    if (!lastCompressedText) return;
+    try {
+      if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(lastCompressedText);
+      else if (!legacyCopy(lastCompressedText)) throw new Error("Clipboard unavailable");
+      $copyCompressed.textContent = "✓ Copied";
+    } catch (_) {
+      $copyCompressed.textContent = "⚠ Copy failed";
+    }
+    setTimeout(function () { $copyCompressed.textContent = "📋 Copy compressed text"; }, 1600);
   });
 
   /* ── Injection Detection ── */
@@ -1257,54 +1406,93 @@ function PS_sourceDump() {
   const $reversibleResult = document.getElementById("reversible-result");
   const $reversibleKey = document.getElementById("reversible-key");
   const $restoreResult = document.getElementById("restore-result");
+  const $restoreKeyInput = document.getElementById("restore-key-input");
   const $restoreInput = document.getElementById("restore-input");
   const $restoreOutput = document.getElementById("restore-output");
-  let lastMapping = null;
 
-  document.getElementById("btn-reversible").addEventListener("click", function () {
+  document.getElementById("btn-reversible").addEventListener("click", async function () {
     const text = $input.value;
     if (!text.trim()) return;
-
-    const ranges = PS_scan(text, enabled);
-    const mapping = {};
-
-    ranges.forEach(function (r, i) {
-      const placeholder = "[[PS_REDACT_" + i + "]]";
-      mapping[placeholder] = {
-        original: text.slice(r.start, r.end),
-        rule: r.rule
-      };
-    });
-
-    lastMapping = { mapping: mapping, text: PS_apply(text, ranges).plain };
-    $reversibleKey.textContent = JSON.stringify(lastMapping, null, 2);
-    $reversibleResult.classList.remove("hidden");
-    $restoreResult.classList.add("hidden");
+    lastMapping = null;
+    $reversibleKey.textContent = "Generating a local mapping key…";
+    try {
+      const ranges = await scanText(text, enabled);
+      const mapping = {};
+      const nonce = window.crypto && typeof window.crypto.randomUUID === "function"
+        ? window.crypto.randomUUID()
+        : Date.now().toString(36) + Math.random().toString(36).slice(2);
+      let reversibleText = "";
+      let cursor = 0;
+      ranges.forEach(function (range, i) {
+        const placeholder = "[[PS_REDACT_" + nonce + "_" + i + "]]";
+        reversibleText += text.slice(cursor, range.start) + placeholder;
+        mapping[placeholder] = { original: text.slice(range.start, range.end), rule: range.rule };
+        cursor = range.end;
+      });
+      reversibleText += text.slice(cursor);
+      lastMapping = { mapping: mapping, text: reversibleText };
+      $reversibleKey.textContent = JSON.stringify(lastMapping, null, 2);
+      $reversibleResult.classList.remove("hidden");
+      $restoreResult.classList.add("hidden");
+    } catch (_) {
+      $reversibleKey.textContent = "Key generation cancelled because the scan did not complete safely.";
+      $reversibleResult.classList.remove("hidden");
+    }
   });
+
+  async function copySensitiveKey(text, button, initialText) {
+    try {
+      if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(text);
+      else if (!legacyCopy(text)) throw new Error("Clipboard unavailable");
+      button.textContent = "✓ Copied";
+    } catch (_) {
+      button.textContent = "⚠ Copy failed";
+    }
+    setTimeout(function () { button.textContent = initialText; }, 1600);
+  }
 
   document.getElementById("btn-copy-key").addEventListener("click", function () {
     if (!lastMapping) return;
-    const json = JSON.stringify(lastMapping, null, 2);
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(json);
-    }
+    copySensitiveKey(JSON.stringify(lastMapping, null, 2), this, "📋 Copy Key (contains originals)");
+  });
+
+  document.getElementById("btn-copy-reversible-text").addEventListener("click", function () {
+    if (!lastMapping) return;
+    copySensitiveKey(lastMapping.text, this, "📋 Copy reversible text");
   });
 
   document.getElementById("btn-restore").addEventListener("click", function () {
-    if (!lastMapping) return;
     $restoreResult.classList.remove("hidden");
-    $restoreOutput.textContent = "Paste redacted text above and it will be restored here. (Auto-restores as you type)";
+    if (lastMapping) {
+      $restoreKeyInput.value = JSON.stringify(lastMapping, null, 2);
+      $restoreInput.value = lastMapping.text;
+    }
+    restoreFromKey();
   });
 
-  $restoreInput.addEventListener("input", function () {
-    if (!lastMapping) return;
-    let restored = $restoreInput.value;
-    const mapping = lastMapping.mapping;
-    for (const [placeholder, data] of Object.entries(mapping)) {
-      restored = restored.split(placeholder).join(data.original);
+  function restoreFromKey() {
+    try {
+      if ($restoreKeyInput.value.length > 5_000_000) throw new Error("Key is too large");
+      const key = JSON.parse($restoreKeyInput.value);
+      if (!key || typeof key !== "object" || !key.mapping || typeof key.mapping !== "object" || Array.isArray(key.mapping)) {
+        throw new Error("Invalid mapping");
+      }
+      const entries = Object.entries(key.mapping);
+      if (entries.length > 100000 || entries.some(function (entry) {
+        return !entry[1] || typeof entry[1].original !== "string";
+      })) throw new Error("Invalid mapping");
+      let restored = $restoreInput.value;
+      for (const [placeholder, data] of entries) {
+        restored = restored.split(placeholder).join(data.original);
+      }
+      $restoreOutput.textContent = restored;
+    } catch (_) {
+      $restoreOutput.textContent = "Enter a valid mapping key JSON and the matching reversible text.";
     }
-    $restoreOutput.textContent = restored;
-  });
+  }
+
+  $restoreKeyInput.addEventListener("input", restoreFromKey);
+  $restoreInput.addEventListener("input", restoreFromKey);
 
   /* ── Templates ── */
   const PS_TEMPLATES = [
@@ -1446,9 +1634,6 @@ function PS_sourceDump() {
       } else if (e.key === "c" && document.activeElement !== $input) {
         e.preventDefault();
         $copy.click();
-      } else if (e.key === "z") {
-        e.preventDefault();
-        document.getElementById("btn-clear").click();
       } else if (e.key === "t") {
         e.preventDefault();
         themeBtn.click();
@@ -1456,20 +1641,25 @@ function PS_sourceDump() {
     }
   });
 
-  /* ── REST API (for integration into pipelines) ── */
-  // Expose a minimal API on window for programmatic access
+  /* ── In-page API for integrations running in this tab ── */
+  // This is not a network REST endpoint; server.js provides that separately.
   window.PromptSafeAPI = {
-    scrub: function (text) {
-      const ranges = PS_scan(text, enabled);
+    scrub: async function (text) {
+      if (typeof text !== "string") throw new TypeError("text must be a string");
+      const ranges = await scanText(text, enabled);
       return PS_apply(text, ranges).plain;
     },
-    scan: function (text) {
-      return PS_scan(text, enabled);
+    scan: async function (text) {
+      if (typeof text !== "string") throw new TypeError("text must be a string");
+      return await scanText(text, enabled);
     },
-    compress: function (text) {
-      return compressText(text);
+    compress: async function (text) {
+      if (typeof text !== "string") throw new TypeError("text must be a string");
+      const ranges = await scanText(text, enabled);
+      return compressText(PS_apply(text, ranges).plain);
     },
     detectInjections: function (text) {
+      if (typeof text !== "string") throw new TypeError("text must be a string");
       return PS_scan(text, new Set(["inject"]));
     },
     getRules: function () {
@@ -1477,11 +1667,11 @@ function PS_sourceDump() {
         return { id: r.id, label: r.label, token: r.token };
       });
     },
-    version: "2.0.0"
+    version: "2.1.0"
   };
 
-  /* ── MCP Tool Definition (for AI agents) ── */
-  window.PromptSafeMCP = {
+  /* ── Optional tool metadata for an external adapter (no MCP transport here) ── */
+  window.PromptSafeToolDefinitions = {
     name: "promptsafe",
     description: "Scrub secrets, PII, and sensitive data from text before sending to AI models",
     tools: [
@@ -1515,7 +1705,7 @@ function PS_sourceDump() {
       },
       {
         name: "compress_text",
-        description: "Compress text to reduce token count while preserving meaning",
+        description: "Lossy log cleanup and secret scrubbing; review before using because repeated lines and log metadata can be removed.",
         inputSchema: {
           type: "object",
           properties: {
@@ -1538,47 +1728,27 @@ function PS_sourceDump() {
     ]
   };
 
-  /* ── CLI Mode (for Node.js stdin/stdout pipeline) ── */
-  // When running under Node.js with --cli flag
-  if (typeof process !== "undefined" && process.versions && process.versions.node) {
-    const args = process.argv.slice(2);
-    if (args.indexOf("--cli") !== -1) {
-      let input = "";
-      process.stdin.setEncoding("utf8");
-      process.stdin.on("data", function (chunk) { input += chunk; });
-      process.stdin.on("end", function () {
-        // Load the engine from this file
-        const engineSource = document.currentScript ? "" : "";
-        // In CLI mode, we eval the PS_RULES and PS_scan/PS_apply from this script
-        const enabled = new Set(PS_RULES.map(function (r) { return r.id; }));
-        const ranges = PS_scan(input, enabled);
-        const result = PS_apply(input, ranges);
-        process.stdout.write(result.plain);
-      });
-    }
-  }
 })();
 
 /* ── One-click sample: every rule should light up on this. ── */
 const SAMPLE_LOG =
-"2026-10-10 22:13:51 INFO  boot: service=api-gateway region=us-east-1 pid=4412\r\n" +
-"2026-10-10 22:13:51 DEBUG config loaded from /etc/api/config.yaml\r\n" +
-"2026-10-10 22:13:52 INFO  connecting postgres://appuser:Tr0ub4dor%26x@10.20.30.40:5432/prod\r\n" +
-"2026-10-10 22:13:52 WARN  retry 3/5 from node 192.0.2.44\r\n" +
-"2026-10-10 22:13:53 ERROR upstream 2001:0db8:85a3:0000:0000:8a2e:0370:7334 refused connection\r\n" +
-"2026-10-10 22:13:53 INFO  using OPENAI_API_KEY=sk-proj-Qw8Zn2mVd4Kp7Rt1Yb6Xs9Lc3Hf5Gj0Da\r\n" +
-"2026-10-10 22:13:54 INFO  aws access key AKIAQ7ZP3MEXAMPLE999 rotated ok\r\n" +
-"2026-10-10 22:13:54 DEBUG Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIn0.Km3nQ8rT5vY2wZ9bX1cL7pJ4hG6dF0sA2eR8uN\r\n" +
-"2026-10-10 22:13:55 WARN  password='Hunter2!Sup3rSecret' rejected for user deploy-bot\r\n" +
-"2026-10-10 22:13:56 INFO  notify ops@example.com and jane.doe@acme-corp.io about ticket #4471\r\n" +
-"2026-10-10 22:13:57 INFO  callback phone +1 (555) 123-4567\r\n" +
-"2026-10-10 22:13:58 ERROR ssh 127.0.0.1:2222 and localhost:8000 timed out after 30s\r\n" +
-"2026-10-10 22:13:59 DEBUG client_secret: \"acme_live_7d3b8c1f5a2e9046\"\r\n" +
-"2026-10-10 22:13:59 DEBUG -----BEGIN PRIVATE KEY-----\r\n" +
-"MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7VJTUt9Us8cKj\r\n" +
-"MzEfYyjiWA4R4/M2bS1GB4t7NXp98C3SC6dVMvDuictGeurT8jNbvJZHtCSuYEvu\r\n" +
-"-----END PRIVATE KEY-----\r\n" +
-"2026-10-10 22:14:00 INFO  done in 9.2s\r\n";
+  "2026-10-10 22:13:51 INFO  boot: service=api-gateway region=us-east-1 pid=4412\r\n" +
+  "2026-10-10 22:13:51 DEBUG config loaded from /etc/api/config.yaml\r\n" +
+  "2026-10-10 22:13:52 INFO  connecting postgres://appuser:Tr0ub4dor%26x@203.0.113.7:5432/prod\r\n" +
+  "2026-10-10 22:13:52 WARN  retry 3/5 from node 192.0.2.44\r\n" +
+  "2026-10-10 22:13:53 ERROR upstream 2001:0db8:85a3:0000:0000:8a2e:0370:7334 refused connection\r\n" +
+  "2026-10-10 22:13:53 INFO  using OPENAI_API_KEY=sk-proj-EXAMPLE_NOT_A_REAL_API_KEY_00000000000000000000000000000000\r\n" +
+  "2026-10-10 22:13:54 INFO  aws access key AKIAIOSFODNN7EXAMPLE rotated ok\r\n" +
+  "2026-10-10 22:13:54 DEBUG Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIn0.Km3nQ8rT5vY2wZ9bX1cL7pJ4hG6dF0sA2eR8uN\r\n" +
+  "2026-10-10 22:13:55 WARN  password='Hunter2!Sup3rSecret' rejected for user deploy-bot\r\n" +
+  "2026-10-10 22:13:56 INFO  notify ops@example.com and ops@example.com about ticket #4471\r\n" +
+  "2026-10-10 22:13:57 INFO  callback phone +1 (555) 123-4567\r\n" +
+  "2026-10-10 22:13:58 ERROR ssh 127.0.0.1:2222 and localhost:8000 timed out after 30s\r\n" +
+  "2026-10-10 22:13:59 DEBUG client_secret: \"SAMPLE_NOT_A_REAL_SECRET\"\r\n" +
+  "2026-10-10 22:13:59 DEBUG -----BEGIN PRIVATE KEY-----\r\n" +
+  "THIS_IS_A_FAKE_TEST_KEY_NOT_VALID_PEM\r\n" +
+  "-----END PRIVATE KEY-----\r\n" +
+  "2026-10-10 22:14:00 INFO  done in 9.2s\r\n";
 </script>
 </body>
 </html>

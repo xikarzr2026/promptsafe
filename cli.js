@@ -10,8 +10,8 @@
  * Options:
  *   --file <path>     Read input from a file instead of stdin
  *   --format <type>   Output format: text (default), json, csv
- *   --rules <ids>     Comma-separated rule IDs to enable (default: all)
- *   --compress        Also compress the output (remove duplicate lines, collapse whitespace)
+ *   --rules <ids>     Comma-separated rule IDs (default: masking rules; injection omitted)
+ *   --compress        Apply lossy log cleanup (duplicates, timestamps, levels, spaces, ANSI)
  *   --detect-only     Only report what would be redacted, do not output scrubbed text
  *   --help            Show this help message
  */
@@ -66,7 +66,8 @@ const PS_RULES = [
     label: "Mask Emails",
     token: "[REDACTED_EMAIL]",
     patterns: [
-      /[A-Za-z0-9._%+-]+@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)*\.[A-Za-z]{2,24}\b/g
+      // Bound local/domain labels and label count to keep malformed input linear-time.
+      /(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9-]{1,63}(?:\.[A-Za-z0-9-]{1,63}){0,125}\.[A-Za-z]{2,24}\b/g
     ]
   },
   {
@@ -88,6 +89,8 @@ const PS_RULES = [
     label: "Mask Passwords & Tokens",
     token: "[REDACTED_SECRET]",
     patterns: [
+      // Quoted values may contain spaces; keep the key and quotes, mask the whole value.
+      /((?:^|[^A-Za-z0-9])(?:aws_secret_access_key|secret_access_key|secret_key|private_key|client_secret|api[_-]?key|apikey|access[_-]?key|access[_-]?token|auth[_-]?token|refresh[_-]?token|db[_-]?password|admin[_-]?password|password|passwd|pwd|passphrase|secret|token)\b["']?\s*(?:=|:|=>|:=)\s*)(["'])((?:\\.|(?!\2)[^\r\n])*?)\2/gi,
       /((?:^|[^A-Za-z0-9])(?:aws_secret_access_key|secret_access_key|secret_key|private_key|client_secret|api[_-]?key|apikey|access[_-]?key|access[_-]?token|auth[_-]?token|refresh[_-]?token|db[_-]?password|admin[_-]?password|password|passwd|pwd|passphrase|secret|token)\b["']?\s*(?:=|:|=>|:=)\s*)(["']?)([^\s,;"'`]+)\2/gi
     ],
     filter: function (matched, m) {
@@ -177,7 +180,7 @@ function compressText(text) {
   }
   let result = unique.join("\n").replace(/ {2,}/g, " ");
   result = result.replace(/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}[.,]?\d*\s*/gm, "");
-  result = result.replace(/\b(DEBUG|INFO|WARN|ERROR|TRACE|FATAL)\s+/g, "");
+  result = result.replace(/^(\s*)(?:DEBUG|INFO|WARN|ERROR|TRACE|FATAL)\s+/gm, "$1");
   result = result.replace(/\x1b\[[0-9;]*m/g, "");
   return result;
 }
@@ -195,8 +198,8 @@ Usage:
 Options:
   --file <path>     Read input from a file instead of stdin
   --format <type>   Output format: text (default), json, csv
-  --rules <ids>     Comma-separated rule IDs to enable (default: all)
-  --compress        Also compress the output
+  --rules <ids>     Comma-separated rule IDs (default: masking rules; injection omitted)
+  --compress        Apply lossy log cleanup (duplicates, timestamps, levels, spaces, ANSI)
   --detect-only     Only report what would be redacted
   --help            Show this help message
 
@@ -235,7 +238,19 @@ function main() {
     }
   }
 
-  const enabled = ruleIds ? new Set(ruleIds) : new Set(PS_RULES.map(r => r.id));
+  const enabled = ruleIds ? new Set(ruleIds) : new Set(PS_RULES.filter(r => r.id !== "inject").map(r => r.id));
+  const knownRules = new Set(PS_RULES.map(r => r.id));
+  const unknownRules = Array.from(enabled).filter(id => !knownRules.has(id));
+  if (unknownRules.length) {
+    console.error(`Unknown rule ID(s): ${unknownRules.join(", ")}. Valid IDs: ${Array.from(knownRules).join(", ")}`);
+    process.exitCode = 2;
+    return;
+  }
+  if (!["text", "json", "csv"].includes(format)) {
+    console.error(`Unsupported output format: ${format}. Use text, json, or csv.`);
+    process.exitCode = 2;
+    return;
+  }
 
   const processText = (text) => {
     if (doCompress) text = compressText(text);
@@ -247,9 +262,9 @@ function main() {
       const output = {
         total_redactions: ranges.length,
         by_rule: counts,
-        redactions: ranges.map(r => ({ rule: r.rule, token: r.text, position: r.start })),
-        text: PS_apply(text, ranges).plain
+        redactions: ranges.map(r => ({ rule: r.rule, token: r.text, position: r.start }))
       };
+      if (!detectOnly) output.text = PS_apply(text, ranges).plain;
       console.log(JSON.stringify(output, null, 2));
     } else if (format === "csv") {
       console.log("Rule,Token,Position");
@@ -275,4 +290,8 @@ function main() {
   }
 }
 
-main();
+module.exports = { PS_RULES, PS_scan, PS_apply, compressText };
+
+if (require.main === module) {
+  main();
+}

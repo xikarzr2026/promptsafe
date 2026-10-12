@@ -3,9 +3,11 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Privacy & Compliance — PromptSafe</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%236366f1'/%3E%3Cstop offset='1' stop-color='%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='url(%23g' d='M16 2 5 7v9c0 7 4.7 12.3 11 14 6.3-1.7 11-7 11-14V7z'/%3E%3Cpath d='M11 15.6l3.2 3.2 6.4-7.3' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
-<script src="https://cdn.tailwindcss.com"></script>
+<meta name="referrer" content="no-referrer" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'" />
+<title>Privacy & Data Handling — PromptSafe</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%236366f1'/%3E%3Cstop offset='1' stop-color='%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='url(%23g)' d='M16 2 5 7v9c0 7 4.7 12.3 11 14 6.3-1.7 11-7 11-14V7z'/%3E%3Cpath d='M11 15.6l3.2 3.2 6.4-7.3' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="assets/promptsafe.css" />
 <style>
   body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, sans-serif; }
   :root { --ps-brand: #6366f1; --ps-brand-2: #8b5cf6; }
@@ -26,38 +28,36 @@
 
   <main class="mx-auto max-w-4xl px-4 py-8 space-y-8">
     <section>
-      <h2 class="text-2xl font-bold text-slate-900">Privacy & Compliance Statement</h2>
-      <p class="mt-2 text-slate-600">PromptSafe is designed from the ground up to be the most privacy-respecting secret scrubber available. This document explains exactly what data practices we follow and why.</p>
+      <h2 class="text-2xl font-bold text-slate-900">Privacy & Data Handling</h2>
+      <p class="mt-2 text-slate-600">This page describes the browser app's data flow and its limits. It is a technical summary, not a legal-compliance certification.</p>
     </section>
 
     <section class="rounded-xl border border-slate-200 bg-white p-6">
-      <h3 class="text-lg font-semibold text-slate-800">GDPR Compliance</h3>
+      <h3 class="text-lg font-semibold text-slate-800">Processing and storage</h3>
       <div class="mt-4 space-y-3 text-[14px] leading-relaxed text-slate-600">
-        <p><strong class="text-slate-800">Article 5 — Data minimisation:</strong> PromptSafe processes text entirely in your browser. No personal data is transmitted, stored, or retained. There is no server-side component to hold data.</p>
-        <p><strong class="text-slate-800">Article 25 — Data protection by design:</strong> The application is a single HTML file with zero external dependencies beyond a cached stylesheet. No cookies, no local storage, no tracking pixels, no analytics.</p>
-        <p><strong class="text-slate-800">Article 32 — Security of processing:</strong> All processing happens client-side using deterministic regular expressions. There is no network transmission of any kind during scrubbing. You can verify this by opening your browser's Network tab and confirming zero requests are made.</p>
-        <p><strong class="text-slate-800">Article 33 — Breach notification:</strong> Because no data leaves your browser and nothing is stored on any server, there is no breach vector. Your data never reaches a system that could be compromised.</p>
+        <p><strong class="text-slate-800">Pasted text:</strong> The browser app processes text in the current tab. Its first-party code does not transmit or persist the text while scrubbing. It does not use cookies, local storage, session storage, IndexedDB, or analytics.</p>
+        <p><strong class="text-slate-800">Hosted access:</strong> When served from GitHub Pages or another host, that provider receives the initial page and static-asset requests and may log IP address, time, and other request metadata under its own policies. A local copy loads only local assets.</p>
+        <p><strong class="text-slate-800">Limits:</strong> Secret and PII detection is pattern-based and incomplete. Review the sanitized output before sharing; do not treat PromptSafe as a guarantee that every sensitive value was found.</p>
+        <p>This page describes the browser app's technical behavior; it is not a legal certification or compliance guarantee. The optional CLI, REST server, and browser extension have separate data flows and security requirements.</p>
       </div>
     </section>
 
     <section class="rounded-xl border border-slate-200 bg-white p-6">
-      <h3 class="text-lg font-semibold text-slate-800">CCPA Compliance</h3>
+      <h3 class="text-lg font-semibold text-slate-800">Accounts and hosting</h3>
       <div class="mt-4 space-y-3 text-[14px] leading-relaxed text-slate-600">
-        <p><strong class="text-slate-800">Right to know:</strong> PromptSafe collects zero personal information. There is nothing to disclose because nothing is collected.</p>
-        <p><strong class="text-slate-800">Right to delete:</strong> Because no data is stored anywhere, there is nothing to delete. Closing the tab destroys all traces of your input.</p>
-        <p><strong class="text-slate-800">Right to opt-out of sale:</strong> PromptSafe does not sell, share, or transmit any data. There is nothing to opt out of.</p>
-        <p><strong class="text-slate-800">Non-discrimination:</strong> There is no user account system, no tracking, and no profiling. All users receive the identical experience.</p>
+        <p>The browser app has no account system and does not submit pasted text to a PromptSafe backend. The static hosting provider may process access metadata such as IP address and request time.</p>
+        <p>For requests about hosted access logs or deletion, contact the hosting provider. For the local copy, closing the page ends the app session, but PromptSafe cannot guarantee forensic erasure from browser or operating-system memory.</p>
       </div>
     </section>
 
     <section class="rounded-xl border border-slate-200 bg-white p-6">
       <h3 class="text-lg font-semibold text-slate-800">Technical Architecture</h3>
       <div class="mt-4 space-y-3 text-[14px] leading-relaxed text-slate-600">
-        <p><strong class="text-slate-800">Single file:</strong> The entire application is one HTML file. No build step, no package manager, no server component.</p>
-        <p><strong class="text-slate-800">Zero backend:</strong> There is no API, no database, no cloud function, no server-side processing. The app works fully offline after the first load.</p>
-        <p><strong class="text-slate-800">Zero storage:</strong> PromptSafe does not use cookies, local storage, session storage, IndexedDB, or any other persistence mechanism.</p>
-        <p><strong class="text-slate-800">Zero network:</strong> During text processing, no network requests are made. The only network request is the Tailwind stylesheet at page load, which is cached by the browser.</p>
-        <p><strong class="text-slate-800">Open source:</strong> The complete source code is available on GitHub under the MIT license. You can audit, fork, and self-host it.</p>
+        <p><strong class="text-slate-800">Static browser app:</strong> The browser interface is static HTML, bundled CSS, and first-party JavaScript. It has no third-party runtime scripts or build-time dependency for normal use.</p>
+        <p><strong class="text-slate-800">Optional tools:</strong> The repository also contains a CLI, a separately configured REST server, and a browser extension. They are distinct programs and have separate permissions; do not assume browser-page privacy statements apply to them.</p>
+        <p><strong class="text-slate-800">Storage:</strong> The browser page does not use cookies, local storage, session storage, or IndexedDB. Reversible-redaction keys intentionally contain original values and may be copied to the system clipboard; Clear All removes the in-page key and derived output.</p>
+        <p><strong class="text-slate-800">Network:</strong> The browser app makes no outbound HTTP(S) request while processing text. Custom regexes run in an in-memory <code>blob:</code> worker. When hosted, the initial HTML and local static-asset requests go to the hosting provider, which may keep access logs.</p>
+        <p><strong class="text-slate-800">Open source:</strong> The complete source code is available on GitHub under the MIT license. You can audit, fork, and self-host the static files.</p>
       </div>
     </section>
 
@@ -69,9 +69,9 @@
           <li>Open your browser's Developer Tools (F12)</li>
           <li>Select the Network tab and clear it</li>
           <li>Paste text containing secrets into PromptSafe</li>
-          <li>Watch the Network tab — no requests are made</li>
-          <li>Set throttling to "Offline" and keep scrubbing — it still works</li>
-          <li>Read the source code — it is one file, available on GitHub</li>
+          <li>After local assets finish loading, watch the Network tab while scrubbing — there should be no processing requests</li>
+          <li>Set throttling to "Offline" and keep scrubbing — the already-loaded app should continue to work</li>
+          <li>Read the HTML, CSS, and JavaScript assets from the repository</li>
         </ol>
       </div>
     </section>
@@ -85,8 +85,8 @@
     </section>
 
     <footer class="text-center text-[12px] text-slate-400 pb-8">
-      <p>PromptSafe v2.0 — 100% client-side privacy scrubber</p>
-      <p class="mt-1">No backend. No database. Nothing stored.</p>
+      <p>PromptSafe v2.1 — local browser text processing</p>
+      <p class="mt-1">The browser page has no persistent input store; optional tools are separate.</p>
     </footer>
   </main>
 </body>

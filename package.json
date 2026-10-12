@@ -1,0 +1,16 @@
+{
+  "name": "promptsafe",
+  "version": "2.1.0",
+  "private": true,
+  "description": "Local-first secret and PII scrubber",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build:css": "npm exec --yes --package=tailwindcss@3.4.17 -- tailwindcss -i styles/tailwind.input.css -o assets/promptsafe.css --content ./*.html --minify",
+    "build:extension": "node scripts/build-extension-engine.js",
+    "test": "node --test tests/integration.test.js tests/extension.test.js && node tests/engine.test.js && node scripts/build-extension-engine.js --check && node scripts/check-web-security.js"
+  },
+  "license": "MIT"
+}

@@ -1,146 +1,281 @@
 #!/usr/bin/env node
+"use strict";
+
 /**
- * PromptSafe REST API Server
+ * PromptSafe local REST API.
  *
- * A lightweight HTTP server that exposes PromptSafe as a REST API.
- * Useful for CI/CD pipelines, pre-commit hooks, and agent integrations.
- *
- * Usage:
- *   node server.js [--port 3000]
- *
- * Endpoints:
- *   POST /api/scrub          — Scrub secrets from text
- *   POST /api/compress       — Compress text (remove duplicates, collapse whitespace)
- *   POST /api/detect         — Detect prompt injection patterns
- *   GET  /api/rules          — List available redaction rules
- *   GET  /health             — Health check
+ * Secure defaults: loopback-only, bearer token required for API routes, no
+ * cross-origin access unless an exact origin is configured, and bounded JSON
+ * request bodies. Set PROMPTSAFE_API_TOKEN before using the API.
  */
 
-const http = require("http");
-const fs = require("fs");
-const path = require("path");
+const http = require("node:http");
+const crypto = require("node:crypto");
+const {
+  PS_RULES,
+  PS_scan,
+  PS_apply,
+  compressText
+} = require("./cli.js");
 
-// Load the CLI engine (it exports the rules)
-const cliPath = path.join(__dirname, "cli.js");
+const MAX_BODY_BYTES = 1024 * 1024;
+const BODY_TIMEOUT_MS = 30_000;
+const KNOWN_RULES = new Set(PS_RULES.map(rule => rule.id));
+const DEFAULT_RULES = PS_RULES.filter(rule => rule.id !== "inject").map(rule => rule.id);
 
-// Inline the engine by reading cli.js and extracting what we need
-let cliSource = fs.readFileSync(cliPath, "utf8");
-// Strip the shebang line if present (it causes a syntax error when eval'd)
-cliSource = cliSource.replace(/^#!.*\n/, "");
+function sendJson(res, statusCode, payload) {
+  if (res.writableEnded) return;
+  res.writeHead(statusCode, {
+    "Content-Type": "application/json; charset=utf-8",
+    "Cache-Control": "no-store",
+    "X-Content-Type-Options": "nosniff"
+  });
+  res.end(JSON.stringify(payload));
+}
 
-// Create a minimal module that exports the engine
-const engineModule = { exports: {} };
-const wrappedCode = `(function(module, exports, require) {\n${cliSource}\nreturn module.exports;\n})`;
-const engineFactory = eval(wrappedCode);
-const engine = engineFactory(engineModule, engineModule.exports, require);
+function safeBearerMatch(header, token) {
+  if (!token || typeof header !== "string") return false;
+  const prefix = "Bearer ";
+  if (!header.startsWith(prefix)) return false;
+  const received = Buffer.from(header.slice(prefix.length), "utf8");
+  const expected = Buffer.from(token, "utf8");
+  return received.length === expected.length && crypto.timingSafeEqual(received, expected);
+}
 
-const PS_RULES = engineModule.exports.PS_RULES || engine.PS_RULES;
-const PS_scan = engineModule.exports.PS_scan || engine.PS_scan;
-const PS_apply = engineModule.exports.PS_apply || engine.PS_apply;
-const compressText = engineModule.exports.compressText || engine.compressText;
+function statusError(statusCode, message) {
+  const error = new Error(message);
+  error.statusCode = statusCode;
+  return error;
+}
 
-const PORT = parseInt(process.env.PORT) || 3000;
-
-const server = http.createServer((req, res) => {
-  // CORS headers
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-  if (req.method === "OPTIONS") {
-    res.writeHead(204);
-    res.end();
-    return;
+async function readJsonBody(req, maxBytes) {
+  const contentLength = Number(req.headers["content-length"] || 0);
+  if (Number.isFinite(contentLength) && contentLength > maxBytes) {
+    req.resume();
+    throw statusError(413, "Request body too large");
   }
 
-  const url = new URL(req.url, `http://localhost:${PORT}`);
-  const pathname = url.pathname;
-
-  // Health check
-  if (pathname === "/health" && req.method === "GET") {
-    res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ status: "ok", service: "PromptSafe API", version: "2.0.0" }));
-    return;
+  const chunks = [];
+  let size = 0;
+  let tooLarge = false;
+  for await (const chunk of req) {
+    size += chunk.length;
+    if (size > maxBytes) {
+      tooLarge = true;
+      chunks.length = 0;
+      continue; // drain without retaining the remainder
+    }
+    if (!tooLarge) chunks.push(chunk);
   }
+  if (tooLarge) throw statusError(413, "Request body too large");
 
-  // List rules
-  if (pathname === "/api/rules" && req.method === "GET") {
-    const rules = PS_RULES.map(r => ({ id: r.id, label: r.label, token: r.token }));
-    res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ rules }));
-    return;
+  let body;
+  try {
+    body = JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}");
+  } catch (_) {
+    throw statusError(400, "Invalid JSON body");
   }
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    throw statusError(400, "JSON body must be an object");
+  }
+  return body;
+}
 
-  // Parse body for POST endpoints
-  let body = "";
-  req.on("data", chunk => body += chunk);
-  req.on("end", () => {
+function resolveRules(data) {
+  if (data.rules === undefined) return new Set(DEFAULT_RULES);
+  if (!Array.isArray(data.rules) || !data.rules.every(id => typeof id === "string")) {
+    throw statusError(400, "rules must be an array of rule IDs");
+  }
+  const unknown = data.rules.filter(id => !KNOWN_RULES.has(id));
+  if (unknown.length) throw statusError(400, "Unknown rule ID");
+  return new Set(data.rules);
+}
+
+function sameOrigin(origin, host) {
+  if (!origin || !host) return false;
+  try {
+    return new URL(origin).host.toLowerCase() === String(host).toLowerCase();
+  } catch (_) {
+    return false;
+  }
+}
+
+function createServer({
+  apiToken = process.env.PROMPTSAFE_API_TOKEN || "",
+  corsOrigin = process.env.PROMPTSAFE_CORS_ORIGIN || "",
+  maxBodyBytes = MAX_BODY_BYTES
+} = {}) {
+  const server = http.createServer(async (req, res) => {
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("Cache-Control", "no-store");
+
+    let pathname;
     try {
-      const data = JSON.parse(body || "{}");
+      pathname = new URL(req.url, "http://localhost").pathname;
+    } catch (_) {
+      sendJson(res, 400, { error: "Invalid request path" });
+      return;
+    }
 
-      // Scrub text
-      if (pathname === "/api/scrub" && req.method === "POST") {
-        const text = data.text || "";
-        const ruleIds = data.rules ? new Set(data.rules) : new Set(PS_RULES.map(r => r.id));
-        const ranges = PS_scan(text, ruleIds);
-        const result = PS_apply(text, ranges);
+    const origin = req.headers.origin;
+    const isSameOrigin = sameOrigin(origin, req.headers.host);
+    const isAllowedOrigin = Boolean(origin && corsOrigin && origin === corsOrigin);
+    if (origin && !isSameOrigin && !isAllowedOrigin) {
+      sendJson(res, 403, { error: "Origin not allowed" });
+      return;
+    }
+    if (isAllowedOrigin) {
+      res.setHeader("Access-Control-Allow-Origin", corsOrigin);
+      res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+      res.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
+      res.setHeader("Vary", "Origin");
+    }
+
+    if (req.method === "OPTIONS") {
+      if (!origin || (!isSameOrigin && !isAllowedOrigin)) {
+        sendJson(res, 403, { error: "Preflight origin not allowed" });
+        return;
+      }
+      res.writeHead(204, { "Cache-Control": "no-store" });
+      res.end();
+      return;
+    }
+
+    if (pathname === "/health" && req.method === "GET") {
+      sendJson(res, 200, { status: "ok", service: "PromptSafe API", version: "2.1.0" });
+      return;
+    }
+
+    const knownPath = pathname === "/api/rules" ||
+      pathname === "/api/scrub" || pathname === "/api/compress" || pathname === "/api/detect";
+    if (!knownPath) {
+      sendJson(res, 404, { error: "Not found" });
+      return;
+    }
+    if (typeof apiToken !== "string" || apiToken.length < 32) {
+      sendJson(res, 503, { error: "API disabled: configure PROMPTSAFE_API_TOKEN with at least 32 characters" });
+      return;
+    }
+    if (!safeBearerMatch(req.headers.authorization, apiToken)) {
+      sendJson(res, 401, { error: "Unauthorized" });
+      return;
+    }
+
+    if (pathname === "/api/rules") {
+      if (req.method !== "GET") {
+        sendJson(res, 405, { error: "Method not allowed" });
+        return;
+      }
+      sendJson(res, 200, {
+        rules: PS_RULES.map(rule => ({ id: rule.id, label: rule.label, token: rule.token })),
+        default_rules: DEFAULT_RULES
+      });
+      return;
+    }
+
+    if (req.method !== "POST") {
+      sendJson(res, 405, { error: "Method not allowed" });
+      return;
+    }
+    const contentType = String(req.headers["content-type"] || "").split(";", 1)[0].trim().toLowerCase();
+    if (contentType !== "application/json") {
+      sendJson(res, 415, { error: "Content-Type must be application/json" });
+      return;
+    }
+
+    req.setTimeout(BODY_TIMEOUT_MS, () => {
+      sendJson(res, 408, { error: "Request timeout" });
+      req.destroy();
+    });
+    try {
+      const data = await readJsonBody(req, maxBodyBytes);
+      if (typeof data.text !== "string") {
+        sendJson(res, 400, { error: "text must be a string" });
+        return;
+      }
+
+      if (pathname === "/api/scrub") {
+        const ranges = PS_scan(data.text, resolveRules(data));
         const counts = {};
-        ranges.forEach(r => { counts[r.rule] = (counts[r.rule] || 0) + 1; });
-        res.writeHead(200, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({
-          text: result.plain,
+        ranges.forEach(range => { counts[range.rule] = (counts[range.rule] || 0) + 1; });
+        sendJson(res, 200, {
+          text: PS_apply(data.text, ranges).plain,
           total_redactions: ranges.length,
           by_rule: counts
-        }));
+        });
         return;
       }
 
-      // Compress text
-      if (pathname === "/api/compress" && req.method === "POST") {
-        const text = data.text || "";
-        const compressed = compressText(text);
-        res.writeHead(200, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({
+      if (pathname === "/api/compress") {
+        const compressed = compressText(PS_apply(data.text, PS_scan(data.text, new Set(DEFAULT_RULES))).plain);
+        sendJson(res, 200, {
           text: compressed,
-          original_length: text.length,
+          original_length: data.text.length,
           compressed_length: compressed.length,
-          savings_percent: text.length > 0
-            ? Math.round((1 - compressed.length / text.length) * 100)
+          estimated_savings_percent: data.text.length
+            ? Math.round((1 - compressed.length / data.text.length) * 100)
             : 0
-        }));
+        });
         return;
       }
 
-      // Detect injections
-      if (pathname === "/api/detect" && req.method === "POST") {
-        const text = data.text || "";
-        const ranges = PS_scan(text, new Set(["inject"]));
-        res.writeHead(200, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({
+      if (pathname === "/api/detect") {
+        const ranges = PS_scan(data.text, new Set(["inject"]));
+        sendJson(res, 200, {
           injections_found: ranges.length,
-          injections: ranges.map(r => ({ rule: r.rule, token: r.text, position: r.start }))
-        }));
+          injections: ranges.map(range => ({ rule: range.rule, token: range.text, position: range.start }))
+        });
         return;
       }
-
-      // 404 for unknown routes
-      res.writeHead(404, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ error: "Not found" }));
-    } catch (err) {
-      res.writeHead(400, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ error: err.message }));
+    } catch (error) {
+      if (res.writableEnded) return;
+      const statusCode = Number.isInteger(error.statusCode) ? error.statusCode : 500;
+      sendJson(res, statusCode, {
+        error: statusCode >= 500 ? "Internal server error" : error.message
+      });
     }
   });
-});
 
-server.listen(PORT, () => {
-  console.log(`PromptSafe API running on http://localhost:${PORT}`);
-  console.log(`Endpoints:`);
-  console.log(`  GET  /health          — Health check`);
-  console.log(`  GET  /api/rules       — List available rules`);
-  console.log(`  POST /api/scrub       — Scrub secrets from text`);
-  console.log(`  POST /api/compress    — Compress text`);
-  console.log(`  POST /api/detect      — Detect prompt injections`);
-  console.log(`\nExample:`);
-  console.log(`  curl -X POST http://localhost:${PORT}/api/scrub -H "Content-Type: application/json" -d '{"text":"key: sk-abc123"}'`);
-});
+  server.requestTimeout = BODY_TIMEOUT_MS;
+  server.headersTimeout = 10_000;
+  return server;
+}
+
+function cliOptions(argv) {
+  let port = Number(process.env.PORT) || 3000;
+  let host = process.env.PROMPTSAFE_HOST || "127.0.0.1";
+  for (let i = 0; i < argv.length; i++) {
+    if (argv[i] === "--port" && argv[i + 1]) port = Number(argv[++i]);
+    else if (argv[i] === "--host" && argv[i + 1]) host = argv[++i];
+    else if (argv[i] === "--help" || argv[i] === "-h") {
+      console.log("Usage: PROMPTSAFE_API_TOKEN=<token> node server.js [--port 3000] [--host 127.0.0.1]");
+      return null;
+    } else {
+      throw new Error(`Unknown server option: ${argv[i]}`);
+    }
+  }
+  if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error("Port must be between 1 and 65535");
+  if (!host.trim()) throw new Error("Host must not be empty");
+  return { port, host };
+}
+
+if (require.main === module) {
+  try {
+    const options = cliOptions(process.argv.slice(2));
+    if (!options) process.exitCode = 0;
+    else {
+      const server = createServer();
+      server.listen(options.port, options.host, () => {
+        console.log(`PromptSafe API listening on http://${options.host}:${options.port}`);
+        if (typeof process.env.PROMPTSAFE_API_TOKEN !== "string" || process.env.PROMPTSAFE_API_TOKEN.length < 32) {
+          console.warn("API routes are disabled until PROMPTSAFE_API_TOKEN is configured with at least 32 characters.");
+        }
+      });
+    }
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 2;
+  }
+}
+
+module.exports = { createServer, MAX_BODY_BYTES, DEFAULT_RULES };
