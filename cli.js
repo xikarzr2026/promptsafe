@@ -1,297 +1,288 @@
 #!/usr/bin/env node
+"use strict";
+
 /**
- * PromptSafe CLI — Scrub secrets from stdin or files
+ * PromptSafe CLI — scrub secrets from stdin or files.
  *
- * Usage:
- *   echo "text with sk-abc123" | node cli.js
- *   node cli.js --file app.log
- *   cat app.log | node cli.js --format json
- *
- * Options:
- *   --file <path>     Read input from a file instead of stdin
- *   --format <type>   Output format: text (default), json, csv
- *   --rules <ids>     Comma-separated rule IDs (default: masking rules; injection omitted)
- *   --compress        Apply lossy log cleanup (duplicates, timestamps, levels, spaces, ANSI)
- *   --detect-only     Only report what would be redacted, do not output scrubbed text
- *   --help            Show this help message
+ * The engine is the same generated bundle the browser extension uses
+ * (extension/engine.js, built from index.html), so the CLI can never drift
+ * from the web app's rules.
  */
 
-const fs = require("fs");
-const path = require("path");
-const readline = require("readline");
+const fs = require("node:fs");
+const engine = require("./extension/engine.js");
 
-// ─── Embedded Engine ──────────────────────────────────────────────────────
-// This is a self-contained extraction of the PromptSafe scrubbing engine.
-// It mirrors the rules from index.html to keep the CLI dependency-free.
+const { PS_VERSION, PS_RULES, PS_scan, PS_apply, PS_compress, PS_scrubCompress } = engine;
+const compressText = PS_compress;
+const KNOWN_RULES = PS_RULES.map(rule => rule.id).filter(id => id !== "custom");
+const DEFAULT_RULES = KNOWN_RULES.filter(id => id !== "inject");
+const FORMATS = ["text", "json", "csv"];
 
-const PS_RULES = [
-  {
-    id: "keys",
-    label: "Mask API Keys & Secrets",
-    token: "[REDACTED_API_KEY]",
-    patterns: [
-      /-----BEGIN[^-]{0,40}PRIVATE KEY-----[\s\S]*?-----END[^-]{0,40}PRIVATE KEY-----/g,
-      /\bsk-(?:proj-|live-|test-|ant-)?[A-Za-z0-9_-]{16,}\b/g,
-      /\bsk_[A-Za-z0-9]{16,}\b/g,
-      /\b(?:AKIA|ASIA|ABIA|ACCA)[0-9A-Z]{16}\b/g,
-      /\bAIza[0-9A-Za-z_-]{35,}\b/g,
-      /\bgh[pousr]_[A-Za-z0-9]{30,}\b/g,
-      /\bgithub_pat_[A-Za-z0-9_]{20,}\b/g,
-      /\bxox[baprs]-[A-Za-z0-9-]{10,}\b/g,
-      /\b(?:sk|pk|rk)_(?:live|test)_[A-Za-z0-9]{16,}\b/g,
-      /\beyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\b/g,
-      /\b(?:Bearer|Basic)\s+[A-Za-z0-9._~+/=-]{12,}/g
-    ]
-  },
-  {
-    id: "dburl",
-    label: "Mask Connection Strings",
-    token: "[REDACTED_CONNECTION_STRING]",
-    patterns: [
-      /\b(?:postgres(?:ql)?|mysql|mariadb|mongodb(?:\+srv)?|redis|amqp|mssql|smtp|ftp|sftp|jdbc:[a-z]+):\/\/[^\s"']+/gi
-    ]
-  },
-  {
-    id: "network",
-    label: "Mask IPv4 / IPv6",
-    token: "[REDACTED_IP]",
-    patterns: [
-      /\b(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(?:\/\d{1,2})?(?::\d{1,5})?\b/g,
-      /(?<![:.\w])(?:(?:[A-Fa-f0-9]{1,4}:){7}[A-Fa-f0-9]{1,4}|(?:[A-Fa-f0-9]{1,4}:){1,7}:|(?:[A-Fa-f0-9]{1,4}:){1,6}:[A-Fa-f0-9]{1,4}|(?:[A-Fa-f0-9]{1,4}:){1,5}(?::[A-Fa-f0-9]{1,4}){1,2}|(?:[A-Fa-f0-9]{1,4}:){1,4}(?::[A-Fa-f0-9]{1,4}){1,3}|(?:[A-Fa-f0-9]{1,4}:){1,3}(?::[A-Fa-f0-9]{1,4}){1,4}|(?:[A-Fa-f0-9]{1,4}:){1,2}(?::[A-Fa-f0-9]{1,4}){1,5}|[A-Fa-f0-9]{1,4}:(?::[A-Fa-f0-9]{1,4}){1,6}|:(?:(?::[A-Fa-f0-9]{1,4}){1,7}|:))(?![:\w])/g,
-      /\b(?:localhost|[\w-]+\.(?:local|internal|lan|corp|home|intranet))(?::\d{1,5})?\b/gi
-    ]
-  },
-  {
-    id: "email",
-    label: "Mask Emails",
-    token: "[REDACTED_EMAIL]",
-    patterns: [
-      // Bound local/domain labels and label count to keep malformed input linear-time.
-      /(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9-]{1,63}(?:\.[A-Za-z0-9-]{1,63}){0,125}\.[A-Za-z]{2,24}\b/g
-    ]
-  },
-  {
-    id: "phone",
-    label: "Mask Phone Numbers",
-    token: "[REDACTED_PHONE]",
-    patterns: [
-      /\+\d{1,3}[\s.-]?(?:\(\d{1,4}\)[\s.-]?)?\d[\d\s.-]{5,}\d/g,
-      /\(\d{3}\)\s*\d{3}[-.\s]?\d{4}/g,
-      /\b\d{3}[-.]\d{3}[-.]\d{4}\b/g
-    ],
-    filter: function (matched) {
-      const digits = matched.replace(/\D/g, "").length;
-      return digits >= 10 && digits <= 15;
-    }
-  },
-  {
-    id: "creds",
-    label: "Mask Passwords & Tokens",
-    token: "[REDACTED_SECRET]",
-    patterns: [
-      // Quoted values may contain spaces; keep the key and quotes, mask the whole value.
-      /((?:^|[^A-Za-z0-9])(?:aws_secret_access_key|secret_access_key|secret_key|private_key|client_secret|api[_-]?key|apikey|access[_-]?key|access[_-]?token|auth[_-]?token|refresh[_-]?token|db[_-]?password|admin[_-]?password|password|passwd|pwd|passphrase|secret|token)\b["']?\s*(?:=|:|=>|:=)\s*)(["'])((?:\\.|(?!\2)[^\r\n])*?)\2/gi,
-      /((?:^|[^A-Za-z0-9])(?:aws_secret_access_key|secret_access_key|secret_key|private_key|client_secret|api[_-]?key|apikey|access[_-]?key|access[_-]?token|auth[_-]?token|refresh[_-]?token|db[_-]?password|admin[_-]?password|password|passwd|pwd|passphrase|secret|token)\b["']?\s*(?:=|:|=>|:=)\s*)(["']?)([^\s,;"'`]+)\2/gi
-    ],
-    filter: function (matched, m) {
-      return !/^\[REDACTED_[A-Z_]*\]$/.test(m[3]);
-    },
-    build: function (match) {
-      return {
-        start: match.index + match[1].length + match[2].length,
-        end: match.index + match[1].length + match[2].length + match[3].length,
-        text: "[REDACTED_SECRET]"
-      };
-    }
-  },
-  {
-    id: "inject",
-    label: "Detect Prompt Injections",
-    token: "[INJECTION_DETECTED]",
-    patterns: [
-      /\b(?:ignore|disregard|forget|override|bypass|skip)\s+(?:all\s+)?(?:previous|prior|above|earlier|preceding)\s+(?:instructions?|prompts?|rules?|guidelines?|constraints?)\b/gi,
-      /\b(?:you\s+are\s+now|act\s+as|pretend\s+to\s+be|roleplay\s+as|impersonate)\s+(?:a\s+)?(?:different|new|another|evil|jailbroken|unrestricted)\b/gi,
-      /\b(?:system\s+prompt|system\s+message)\s*(?:=|:\s*)/gi,
-      /\b(?:do\s+not\s+follow|disobey|defy|ignore)\s+(?:your\s+)?(?:programming|training|guidelines|rules|instructions?|constraints?|restrictions?)\b/gi,
-      /\b(?:jailbreak|DAN|do\s+anything\s+now)\b/gi,
-      /\b(?:reveal|show|print|output|leak|expose)\s+(?:your\s+)?(?:system\s+prompt|hidden\s+prompt|initial\s+prompt|secret\s+prompt)\b/gi,
-      /\b(?:new\s+instructions?|updated\s+instructions?|new\s+rules?|updated\s+rules?|new\s+guidelines?|updated\s+guidelines?)\s*(?:=|:\s*)/gi
-    ]
-  },
-  {
-    id: "custom",
-    label: "Custom Masking Regex",
-    token: "[REDACTED_CUSTOM]",
-    patterns: []
-  }
-];
-
-function PS_scan(text, enabledIds) {
-  const ranges = [];
-  for (const rule of PS_RULES) {
-    if (!enabledIds.has(rule.id)) continue;
-    for (const re of rule.patterns) {
-      if (!re || !re.source) continue;
-      let scanner = re;
-      if (!re.global) scanner = new RegExp(re.source, re.flags + "g");
-      scanner.lastIndex = 0;
-      let m;
-      while ((m = scanner.exec(text)) !== null) {
-        if (m[0].length === 0) { scanner.lastIndex++; continue; }
-        if (rule.filter && !rule.filter(m[0], m)) continue;
-        let start = m.index, end = m.index + m[0].length, text_ = rule.token;
-        if (rule.build) {
-          const b = rule.build(m);
-          if (!b || b.end <= b.start) continue;
-          start = b.start; end = b.end; text_ = b.text || rule.token;
-        }
-        ranges.push({ start, end, text: text_, rule: rule.id });
-      }
-    }
-  }
-  ranges.sort((a, b) => a.start - b.start || (b.end - b.start) - (a.end - a.start));
-  const kept = [];
-  let lastEnd = -1;
-  for (const r of ranges) {
-    if (r.start >= lastEnd) { kept.push(r); lastEnd = r.end; }
-  }
-  return kept;
-}
-
-function PS_apply(text, ranges) {
-  let plain = "";
-  let cursor = 0;
-  for (const r of ranges) {
-    plain += text.slice(cursor, r.start) + r.text;
-    cursor = r.end;
-  }
-  plain += text.slice(cursor);
-  return { plain };
-}
-
-function compressText(text) {
-  const lines = text.split("\n");
-  const seen = new Set();
-  const unique = [];
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (trimmed && !seen.has(trimmed)) { seen.add(trimmed); unique.push(line); }
-    else if (!trimmed) { unique.push(line); }
-  }
-  let result = unique.join("\n").replace(/ {2,}/g, " ");
-  result = result.replace(/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}[.,]?\d*\s*/gm, "");
-  result = result.replace(/^(\s*)(?:DEBUG|INFO|WARN|ERROR|TRACE|FATAL)\s+/gm, "$1");
-  result = result.replace(/\x1b\[[0-9;]*m/g, "");
-  return result;
-}
-
-// ─── CLI Entry Point ────────────────────────────────────────────────────────
-
-function showHelp() {
-  console.log(`
-PromptSafe CLI — Scrub secrets from text
+const HELP = `
+PromptSafe CLI v${PS_VERSION} — scrub secrets from text
 
 Usage:
-  echo "text" | node cli.js [options]
-  node cli.js --file <path> [options]
+  echo "text" | promptsafe [options]
+  promptsafe --file <path> [options]
 
 Options:
-  --file <path>     Read input from a file instead of stdin
-  --format <type>   Output format: text (default), json, csv
-  --rules <ids>     Comma-separated rule IDs (default: masking rules; injection omitted)
-  --compress        Apply lossy log cleanup (duplicates, timestamps, levels, spaces, ANSI)
-  --detect-only     Only report what would be redacted
-  --help            Show this help message
+  -f, --file <path>     Read input from a file instead of stdin
+  -o, --output <path>   Write the result to a file instead of stdout
+      --format <type>   Output format: text (default), json, csv
+      --rules <ids>     Comma-separated rule IDs (default: all masking rules)
+      --compress        Lossy log cleanup (ANSI, timestamps, levels, repeats, spaces)
+      --detect-only     Report what would be redacted; never print the text
+      --fail-on-find    Exit with code 1 when anything is found (for CI and hooks)
+      --list-rules      Print the available rule IDs
+  -v, --version         Print the version
+  -h, --help            Show this help
+
+Rule IDs: ${KNOWN_RULES.join(", ")} (inject is detection-only and off by default)
+
+Input must be UTF-8 or UTF-16 with a byte-order mark. Report offsets (json/csv)
+are UTF-16 code-unit positions in the input. With --compress, each finding has a
+stage: "input", or "compressed" for secrets only visible after compression,
+whose offsets refer to the compressed text; detect-only text output shows counts.
 
 Examples:
-  echo "key: sk-abc123" | node cli.js
-  node cli.js --file app.log --format json
-  cat debug.log | node cli.js --rules keys,creds --compress
-`);
-}
+  echo "key: sk-abc123..." | promptsafe
+  promptsafe --file app.log --format json
+  cat debug.log | promptsafe --rules keys,creds --compress
+  git diff --cached | promptsafe --detect-only --fail-on-find
+`;
 
-function main() {
-  const args = process.argv.slice(2);
+class UsageError extends Error {}
 
-  if (args.includes("--help") || args.includes("-h")) {
-    showHelp();
-    process.exit(0);
-  }
-
-  let inputSource = null;
-  let format = "text";
-  let ruleIds = null;
-  let doCompress = false;
-  let detectOnly = false;
-
-  for (let i = 0; i < args.length; i++) {
-    if (args[i] === "--file" && args[i + 1]) {
-      inputSource = args[++i];
-    } else if (args[i] === "--format" && args[i + 1]) {
-      format = args[++i];
-    } else if (args[i] === "--rules" && args[i + 1]) {
-      ruleIds = args[++i].split(",").map(s => s.trim());
-    } else if (args[i] === "--compress") {
-      doCompress = true;
-    } else if (args[i] === "--detect-only") {
-      detectOnly = true;
-    }
-  }
-
-  const enabled = ruleIds ? new Set(ruleIds) : new Set(PS_RULES.filter(r => r.id !== "inject").map(r => r.id));
-  const knownRules = new Set(PS_RULES.map(r => r.id));
-  const unknownRules = Array.from(enabled).filter(id => !knownRules.has(id));
-  if (unknownRules.length) {
-    console.error(`Unknown rule ID(s): ${unknownRules.join(", ")}. Valid IDs: ${Array.from(knownRules).join(", ")}`);
-    process.exitCode = 2;
-    return;
-  }
-  if (!["text", "json", "csv"].includes(format)) {
-    console.error(`Unsupported output format: ${format}. Use text, json, or csv.`);
-    process.exitCode = 2;
-    return;
-  }
-
-  const processText = (text) => {
-    if (doCompress) text = compressText(text);
-    const ranges = PS_scan(text, enabled);
-
-    if (format === "json") {
-      const counts = {};
-      ranges.forEach(r => { counts[r.rule] = (counts[r.rule] || 0) + 1; });
-      const output = {
-        total_redactions: ranges.length,
-        by_rule: counts,
-        redactions: ranges.map(r => ({ rule: r.rule, token: r.text, position: r.start }))
-      };
-      if (!detectOnly) output.text = PS_apply(text, ranges).plain;
-      console.log(JSON.stringify(output, null, 2));
-    } else if (format === "csv") {
-      console.log("Rule,Token,Position");
-      ranges.forEach(r => console.log(`${r.rule},${r.text},${r.start}`));
-    } else {
-      if (detectOnly) {
-        ranges.forEach(r => console.log(`[${r.rule}] ${r.text} at position ${r.start}`));
-        if (ranges.length === 0) console.log("No redactions found.");
-      } else {
-        console.log(PS_apply(text, ranges).plain);
-      }
-    }
+function parseArgs(argv) {
+  const options = {
+    file: null,
+    output: null,
+    format: "text",
+    rules: null,
+    compress: false,
+    detectOnly: false,
+    failOnFind: false,
+    help: false,
+    version: false,
+    listRules: false
+  };
+  const takeValue = (i, name) => {
+    const value = argv[i + 1];
+    // A separate value may not look like an option ("-o -f" must not write a file named "-f");
+    // pass unusual names as --name=-value.
+    if (value === undefined || value.startsWith("-")) throw new UsageError(`${name} needs a value`);
+    return value;
   };
 
-  if (inputSource) {
-    const content = fs.readFileSync(inputSource, "utf8");
-    processText(content);
+  for (let i = 0; i < argv.length; i++) {
+    let arg = argv[i];
+    let inline = null;
+    const eq = arg.startsWith("--") ? arg.indexOf("=") : -1;
+    if (eq > 0) { inline = arg.slice(eq + 1); arg = arg.slice(0, eq); }
+    const value = name => {
+      if (inline !== null) {
+        if (!inline) throw new UsageError(`${name} needs a value`);
+        return inline;
+      }
+      return takeValue(i++, name);
+    };
+
+    switch (arg) {
+      case "-f": case "--file": options.file = value("--file"); break;
+      case "-o": case "--output": options.output = value("--output"); break;
+      case "--format": options.format = value("--format").toLowerCase(); break;
+      case "--rules": options.rules = value("--rules").split(",").map(s => s.trim()).filter(Boolean); break;
+      case "--compress": options.compress = true; break;
+      case "--detect-only": options.detectOnly = true; break;
+      case "--fail-on-find": options.failOnFind = true; break;
+      case "--list-rules": options.listRules = true; break;
+      case "-v": case "--version": options.version = true; break;
+      case "-h": case "--help": options.help = true; break;
+      default: throw new UsageError(`Unknown option: ${argv[i]}`);
+    }
+  }
+
+  if (!FORMATS.includes(options.format)) {
+    throw new UsageError(`Unsupported output format: ${options.format}. Use text, json, or csv.`);
+  }
+  if (options.rules) {
+    const unknown = options.rules.filter(id => !KNOWN_RULES.includes(id));
+    if (unknown.length) {
+      throw new UsageError(`Unknown rule ID(s): ${unknown.join(", ")}. Valid IDs: ${KNOWN_RULES.join(", ")}`);
+    }
+    if (!options.rules.length) throw new UsageError("--rules needs at least one rule ID");
+  }
+  return options;
+}
+
+function csvCell(value) {
+  const s = String(value);
+  return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+function countByRule(ranges) {
+  const counts = {};
+  for (const range of ranges) counts[range.rule] = (counts[range.rule] || 0) + 1;
+  return counts;
+}
+
+/** Pure transform used by main() and tests: returns the output string. */
+function processText(input, options) {
+  const enabled = new Set(options.rules || DEFAULT_RULES);
+  let ranges;
+  let scrubbed;
+  if (options.compress) {
+    // Scrub, compress, re-scrub. Pass-1 offsets refer to the input; pass-2
+    // findings only appeared after compression and refer to the compressed text.
+    const result = PS_scrubCompress(input, enabled);
+    ranges = result.firstPass.map(r => ({ ...r, stage: "input" }))
+      .concat(result.secondPass.map(r => ({ ...r, stage: "compressed" })));
+    scrubbed = () => result.text;
   } else {
-    let input = "";
-    process.stdin.setEncoding("utf8");
-    process.stdin.on("data", chunk => input += chunk);
-    process.stdin.on("end", () => processText(input));
+    ranges = PS_scan(input, enabled);
+    scrubbed = () => PS_apply(input, ranges).plain;
+  }
+
+  let output;
+  if (options.format === "json") {
+    const report = {
+      version: PS_VERSION,
+      total_redactions: ranges.length,
+      by_rule: countByRule(ranges),
+      redactions: ranges.map(r => {
+        const item = { rule: r.rule, token: r.text, start: r.start, end: r.end, position: r.start };
+        if (r.stage) item.stage = r.stage;
+        return item;
+      })
+    };
+    if (!options.detectOnly) report.text = scrubbed();
+    output = JSON.stringify(report, null, 2) + "\n";
+  } else if (options.format === "csv") {
+    const rows = [options.compress ? ["Rule", "Token", "Start", "End", "Stage"] : ["Rule", "Token", "Start", "End"]];
+    for (const r of ranges) rows.push(options.compress ? [r.rule, r.text, r.start, r.end, r.stage] : [r.rule, r.text, r.start, r.end]);
+    output = rows.map(row => row.map(csvCell).join(",")).join("\n") + "\n";
+  } else if (options.detectOnly) {
+    if (!ranges.length) output = "No redactions found.\n";
+    else if (options.compress) {
+      // Positions are not meaningful across a lossy rewrite; report counts only.
+      const tokens = {};
+      for (const r of ranges) tokens[r.rule] = r.text;
+      output = Object.entries(countByRule(ranges)).map(([rule, n]) => `[${rule}] ${tokens[rule]} x${n}`).join("\n") + "\n";
+    } else {
+      output = ranges.map(r => `[${r.rule}] ${r.text} at position ${r.start}`).join("\n") + "\n";
+    }
+  } else {
+    output = scrubbed();
+    if (!output.endsWith("\n")) output += "\n";
+  }
+  return { output, found: ranges.length };
+}
+
+/**
+ * Decode input bytes. UTF-16 (common from Windows PowerShell redirection) is
+ * honoured via its BOM; BOM-less input containing NUL bytes is refused rather
+ * than scanned as mojibake, which would silently find nothing.
+ */
+function decodeInput(buffer) {
+  if (buffer.length >= 2 && buffer[0] === 0xff && buffer[1] === 0xfe) {
+    return buffer.subarray(2).toString("utf16le");
+  }
+  if (buffer.length >= 2 && buffer[0] === 0xfe && buffer[1] === 0xff) {
+    const body = Buffer.from(buffer.subarray(2));
+    if (body.length % 2 !== 0) throw new Error("truncated UTF-16BE input");
+    return body.swap16().toString("utf16le");
+  }
+  const start = buffer.length >= 3 && buffer[0] === 0xef && buffer[1] === 0xbb && buffer[2] === 0xbf ? 3 : 0;
+  if (buffer.indexOf(0, start) !== -1) {
+    throw new Error("input contains NUL bytes (binary, or UTF-16 without a BOM); re-save it as UTF-8");
+  }
+  return buffer.subarray(start).toString("utf8");
+}
+
+function readStdin() {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    process.stdin.on("data", chunk => { chunks.push(chunk); });
+    process.stdin.on("end", () => resolve(Buffer.concat(chunks)));
+    process.stdin.on("error", reject);
+  });
+}
+
+function sameFile(a, b) {
+  try {
+    const x = fs.statSync(a, { bigint: true });
+    const y = fs.statSync(b, { bigint: true });
+    return x.ino !== 0n && x.ino === y.ino && x.dev === y.dev;
+  } catch (_) {
+    return false; // output does not exist yet
   }
 }
 
-module.exports = { PS_RULES, PS_scan, PS_apply, compressText };
+async function main(argv = process.argv.slice(2)) {
+  let options;
+  try {
+    options = parseArgs(argv);
+  } catch (error) {
+    if (!(error instanceof UsageError)) throw error;
+    console.error(`promptsafe: ${error.message}\nRun with --help for usage.`);
+    return 2;
+  }
+
+  if (options.help) { process.stdout.write(HELP.trimStart()); return 0; }
+  if (options.version) { console.log(PS_VERSION); return 0; }
+  if (options.listRules) {
+    for (const rule of PS_RULES) {
+      if (rule.id === "custom") continue;
+      console.log(`${rule.id.padEnd(8)} ${rule.label} -> ${rule.token}${rule.id === "inject" ? " (opt-in)" : ""}`);
+    }
+    return 0;
+  }
+
+  if (options.file && options.output && sameFile(options.file, options.output)) {
+    console.error("promptsafe: refusing to overwrite the input file; choose a different --output path.");
+    return 2;
+  }
+
+  let input;
+  try {
+    if (options.file) {
+      input = decodeInput(fs.readFileSync(options.file));
+    } else if (process.stdin.isTTY) {
+      console.error("promptsafe: no input. Pipe text in or use --file <path>. Run with --help for usage.");
+      return 2;
+    } else {
+      input = decodeInput(await readStdin());
+    }
+  } catch (error) {
+    console.error(`promptsafe: cannot read ${options.file || "stdin"}: ${error.code || error.message}`);
+    return 2;
+  }
+
+  const { output, found } = processText(input, options);
+  const code = options.failOnFind && found > 0 ? 1 : 0;
+  try {
+    if (options.output) fs.writeFileSync(options.output, output, "utf8");
+    else {
+      // A closed pipe (e.g. "| head") is not a crash; keep the result-based exit code
+      // so --fail-on-find stays meaningful.
+      process.stdout.on("error", error => {
+        if (error.code !== "EPIPE") console.error(`promptsafe: cannot write stdout: ${error.code || error.message}`);
+        process.exit(error.code === "EPIPE" ? code : 2);
+      });
+      process.stdout.write(output);
+    }
+  } catch (error) {
+    console.error(`promptsafe: cannot write ${options.output}: ${error.code || error.message}`);
+    return 2;
+  }
+  return code;
+}
+
+module.exports = { PS_VERSION, PS_RULES, PS_scan, PS_apply, compressText, parseArgs, processText, decodeInput, DEFAULT_RULES };
 
 if (require.main === module) {
-  main();
+  main().then(code => { process.exitCode = code; }, error => {
+    console.error(`promptsafe: ${error.message}`);
+    process.exitCode = 2;
+  });
 }

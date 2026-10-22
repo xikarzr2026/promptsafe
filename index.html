@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="color-scheme" content="light dark" />
 <meta name="referrer" content="no-referrer" />
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-giWZi9e4D3rLfcL3rbWNjRUKc/Hz8zA8fMs9Hhziz/8='; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'none'; worker-src blob:; object-src 'none'; base-uri 'none'; form-action 'none'" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-9js7UQzAG5JEmu1zGFdFQ2MWnOqtHkVatlARNXPhQ9w='; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'none'; worker-src blob:; object-src 'none'; base-uri 'none'; form-action 'none'" />
 <meta name="description" content="PromptSafe processes pasted text locally in your browser tab. It detects common secret formats, but is not a complete guarantee; review results before sharing." />
 <title>PromptSafe — Client-Side Secret Scrubber</title>
 <!-- Inline SVG favicon: no extra network request. -->
@@ -91,86 +91,34 @@
   [data-theme="dark"] .chev { color: #818cf8; }
   [data-theme="dark"] .ps-disclaimer::before { background: linear-gradient(180deg, #818cf8, #a78bfa); }
   [data-theme="dark"] .ps-disclaimer svg { color: #818cf8; }
-  [data-theme="dark"] .ps-disclaimer .bg-white { background: #1e293b; }
-  [data-theme="dark"] .ps-disclaimer .ring-indigo-200 { --tw-ring-color: #3730a3; }
-  [data-theme="dark"] .ps-disclaimer .shadow-sm { box-shadow: 0 1px 2px rgba(0,0,0,.3); }
-  [data-theme="dark"] .ps-disclaimer .text-slate-900 { color: #e2e8f0; }
-  [data-theme="dark"] .ps-disclaimer .text-slate-600 { color: #94a3b8; }
-  [data-theme="dark"] .ps-disclaimer .text-slate-700 { color: #cbd5e1; }
-  [data-theme="dark"] .ps-disclaimer .font-semibold { color: #e2e8f0; }
-  [data-theme="dark"] .ps-disclaimer .font-bold { color: #e2e8f0; }
-  [data-theme="dark"] .ps-disclaimer .tracking-tight { color: #e2e8f0; }
-  [data-theme="dark"] .ps-disclaimer .text-indigo-600 { color: #818cf8; }
-  [data-theme="dark"] .ps-disclaimer .text-indigo-500 { color: #818cf8; }
-  [data-theme="dark"] .ps-disclaimer .underline { color: #818cf8; }
-  [data-theme="dark"] .ps-disclaimer .hover\:text-indigo-500:hover { color: #a5b4fc; }
-  [data-theme="dark"] .ps-disclaimer .bg-indigo-50 { background: #1e1b4b; }
-  [data-theme="dark"] .ps-disclaimer .border-indigo-100 { border-color: #3730a3; }
-  [data-theme="dark"] .ps-disclaimer .text-indigo-700 { color: #a5b4fc; }
-  [data-theme="dark"] .ps-disclaimer .text-indigo-600 { color: #818cf8; }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-800 { color: #6ee7b7; }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-900 { color: #a7f3d0; }
-  [data-theme="dark"] .ps-disclaimer .bg-emerald-50 { background: #022c22; }
-  [data-theme="dark"] .ps-disclaimer .border-emerald-200 { border-color: #065f46; }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-700 { color: #6ee7b7; }
-  [data-theme="dark"] .ps-disclaimer .bg-emerald-100 { background: #064e3b; }
-  [data-theme="dark"] .ps-disclaimer .hover\:bg-emerald-100:hover { background: #065f46; }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-600 { color: #34d399; }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-500 { color: #10b981; }
-  [data-theme="dark"] .ps-disclaimer .bg-emerald-50\/50 { background: rgba(2,44,34,.5); }
-  [data-theme="dark"] .ps-disclaimer .border-emerald-200\/50 { border-color: rgba(6,95,70,.5); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-700\/50 { color: rgba(110,231,183,.5); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-600\/50 { color: rgba(52,211,153,.5); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-500\/50 { color: rgba(16,185,129,.5); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-400\/50 { color: rgba(52,211,153,.5); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-300\/50 { color: rgba(110,231,183,.5); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-200\/50 { color: rgba(16,185,129,.5); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-100\/50 { color: rgba(52,211,153,.5); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-50\/60 { background: rgba(2,44,34,.6); }
-  [data-theme="dark"] .ps-disclaimer .border-emerald-200\/60 { border-color: rgba(6,95,70,.6); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-700\/60 { color: rgba(110,231,183,.6); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-600\/60 { color: rgba(52,211,153,.6); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-500\/60 { color: rgba(16,185,129,.6); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-400\/60 { color: rgba(52,211,153,.6); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-300\/60 { color: rgba(110,231,183,.6); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-200\/60 { color: rgba(16,185,129,.6); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-100\/60 { color: rgba(52,211,153,.6); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-50\/70 { background: rgba(2,44,34,.7); }
-  [data-theme="dark"] .ps-disclaimer .border-emerald-200\/70 { border-color: rgba(6,95,70,.7); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-700\/70 { color: rgba(110,231,183,.7); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-600\/70 { color: rgba(52,211,153,.7); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-500\/70 { color: rgba(16,185,129,.7); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-400\/70 { color: rgba(52,211,153,.7); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-300\/70 { color: rgba(110,231,183,.7); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-200\/70 { color: rgba(16,185,129,.7); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-100\/70 { color: rgba(52,211,153,.7); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-50\/80 { background: rgba(2,44,34,.8); }
-  [data-theme="dark"] .ps-disclaimer .border-emerald-200\/80 { border-color: rgba(6,95,70,.8); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-700\/80 { color: rgba(110,231,183,.8); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-600\/80 { color: rgba(52,211,153,.8); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-500\/80 { color: rgba(16,185,129,.8); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-400\/80 { color: rgba(52,211,153,.8); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-300\/80 { color: rgba(110,231,183,.8); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-200\/80 { color: rgba(16,185,129,.8); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-100\/80 { color: rgba(52,211,153,.8); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-50\/90 { background: rgba(2,44,34,.9); }
-  [data-theme="dark"] .ps-disclaimer .border-emerald-200\/90 { border-color: rgba(6,95,70,.9); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-700\/90 { color: rgba(110,231,183,.9); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-600\/90 { color: rgba(52,211,153,.9); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-500\/90 { color: rgba(16,185,129,.9); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-400\/90 { color: rgba(52,211,153,.9); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-300\/90 { color: rgba(110,231,183,.9); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-200\/90 { color: rgba(16,185,129,.9); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-100\/90 { color: rgba(52,211,153,.9); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-50\/100 { background: rgba(2,44,34,1); }
-  [data-theme="dark"] .ps-disclaimer .border-emerald-200\/100 { border-color: rgba(6,95,70,1); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-700\/100 { color: rgba(110,231,183,1); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-600\/100 { color: rgba(52,211,153,1); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-500\/100 { color: rgba(16,185,129,1); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-400\/100 { color: rgba(52,211,153,1); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-300\/100 { color: rgba(110,231,183,1); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-200\/100 { color: rgba(16,185,129,1); }
-  [data-theme="dark"] .ps-disclaimer .text-emerald-100\/100 { color: rgba(52,211,153,1); }
+  /* Dark overrides for every Tailwind colour utility the page uses. */
+  [data-theme="dark"] .bg-white, [data-theme="dark"] .bg-white\/70, [data-theme="dark"] .bg-white\/80 { background-color: #1e293b; }
+  [data-theme="dark"] .bg-slate-50, [data-theme="dark"] .bg-slate-50\/70 { background-color: #0f172a; }
+  [data-theme="dark"] .bg-slate-100 { background-color: #334155; }
+  [data-theme="dark"] .bg-indigo-50 { background-color: #1e1b4b; }
+  [data-theme="dark"] .bg-emerald-50 { background-color: #022c22; }
+  [data-theme="dark"] .bg-red-50 { background-color: #2a0a0a; }
+  [data-theme="dark"] .hover\:bg-indigo-50\/60:hover { background-color: rgba(49,46,129,.35); }
+  [data-theme="dark"] .hover\:bg-emerald-100:hover { background-color: #064e3b; }
+  [data-theme="dark"] .border-slate-200, [data-theme="dark"] .border-slate-200\/80 { border-color: #334155; }
+  [data-theme="dark"] .border-slate-300, [data-theme="dark"] .hover\:border-slate-300:hover { border-color: #475569; }
+  [data-theme="dark"] .hover\:border-indigo-300:hover { border-color: #6366f1; }
+  [data-theme="dark"] .border-indigo-100 { border-color: #3730a3; }
+  [data-theme="dark"] .border-emerald-200 { border-color: #065f46; }
+  [data-theme="dark"] .border-red-200 { border-color: #7f1d1d; }
+  [data-theme="dark"] .ring-indigo-200 { --tw-ring-color: #3730a3; }
+  [data-theme="dark"] .text-slate-900, [data-theme="dark"] .text-slate-800 { color: #e2e8f0; }
+  [data-theme="dark"] .text-slate-600 { color: #cbd5e1; }
+  [data-theme="dark"] .text-slate-500 { color: #94a3b8; }
+  [data-theme="dark"] .placeholder-slate-400::placeholder { color: #64748b; }
+  [data-theme="dark"] .text-indigo-600, [data-theme="dark"] .text-indigo-700 { color: #a5b4fc; }
+  [data-theme="dark"] .hover\:text-indigo-500:hover { color: #c7d2fe; }
+  [data-theme="dark"] .text-emerald-600, [data-theme="dark"] .text-emerald-700 { color: #6ee7b7; }
+  [data-theme="dark"] .text-emerald-800 { color: #a7f3d0; }
+  [data-theme="dark"] .text-emerald-900\/90 { color: rgba(209,250,229,.9); }
+  [data-theme="dark"] .text-amber-700 { color: #fcd34d; }
+  [data-theme="dark"] .text-rose-600 { color: #fda4af; }
+  [data-theme="dark"] .text-red-700, [data-theme="dark"] .text-red-800 { color: #fca5a5; }
   html, body { margin: 0; color: var(--ps-body);
     font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, sans-serif; }
   body {
@@ -229,6 +177,29 @@
   .hl-creds   { background: #ffe4e6; color: #9f1239; box-shadow: inset 0 0 0 1px #fda4af; }
   .hl-phone   { background: #d1fae5; color: #065f46; box-shadow: inset 0 0 0 1px #6ee7b7; }
   .hl-custom  { background: #fae8ff; color: #86198f; box-shadow: inset 0 0 0 1px #f0abfc; }
+  .hl-inject  { background: #fee2e2; color: #991b1b; box-shadow: inset 0 0 0 1px #fca5a5; white-space: normal; }
+
+  /* Keyboard focus on the visually hidden checkbox shows on its switch row. */
+  #toggles label:has(input:focus-visible) { outline: 2px solid var(--ps-brand); outline-offset: 2px; }
+  #toggles label:has(input:checked) { border-color: #c7d2fe; }
+  [data-theme="dark"] #toggles label:has(input:checked) { border-color: #4338ca; }
+
+  /* File drop target */
+  .ps-drop { outline: 2px dashed var(--ps-brand); outline-offset: 4px; }
+  .ps-drop textarea { background: #eef2ff; }
+  [data-theme="dark"] .ps-drop textarea { background: #1e1b4b; }
+
+  /* Header actions: one scrollable row on narrow screens instead of a wall of buttons. */
+  @media (max-width: 639px) {
+    .ps-actions { flex-wrap: nowrap; overflow-x: auto; width: 100%; margin-left: 0; padding-bottom: 2px;
+      scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+    .ps-actions::-webkit-scrollbar { display: none; }
+    .ps-actions .ps-btn { flex: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
 
   .ps-switch { position: relative; width: 2.1rem; height: 1.15rem; border-radius: 999px; flex: none;
     background: #e2e8f0; transition: background .18s ease, box-shadow .18s ease;
@@ -274,7 +245,7 @@
         <div class="flex items-center gap-2">
           <h1 class="text-lg font-bold tracking-tight text-slate-900">PromptSafe</h1>
           <span class="rounded-md border border-indigo-100 bg-indigo-50 px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-indigo-600"
-                title="PromptSafe v2.1 — local-only processing with explicit safety limits">v2.1</span>
+                title="PromptSafe v2.2 — local-only processing with explicit safety limits">v2.2</span>
         </div>
         <p class="text-[11px] text-slate-500">scrub secrets before you paste</p>
       </div>
@@ -290,15 +261,15 @@
       🔒 Local processing • Review before sharing
     </button>
 
-    <div class="ml-auto ps-wrap">
-      <button id="btn-theme" type="button" class="ps-btn" title="Toggle dark/light theme">🌙</button>
-      <button id="btn-shortcuts" type="button" class="ps-btn" title="Keyboard shortcuts">⌨️</button>
+    <nav class="ml-auto ps-wrap ps-actions" aria-label="Tools">
+      <button id="btn-theme" type="button" class="ps-btn" title="Toggle dark/light theme (T)" aria-label="Switch to dark theme">🌙</button>
+      <button id="btn-shortcuts" type="button" class="ps-btn" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts">⌨️</button>
       <button id="btn-export" type="button" class="ps-btn" title="Export redaction report">📊 Export</button>
       <button id="btn-templates" type="button" class="ps-btn" title="Load a prompt template">📋 Templates</button>
-      <button id="btn-source" type="button" class="ps-btn"><span aria-hidden="true">{ }</span> GitHub Source</button>
+      <button id="btn-source" type="button" class="ps-btn" title="View the engine source running in this tab"><span aria-hidden="true">{ }</span> Source</button>
       <button id="btn-sample" type="button" class="ps-btn">📄 Load Sample Log</button>
       <button id="btn-clear"  type="button" class="ps-btn">✕ Clear All</button>
-    </div>
+    </nav>
   </div>
 </header>
 
@@ -326,16 +297,21 @@
   <div class="ps-cols">
 
     <!-- LEFT: raw input -->
-    <section class="ps-card flex flex-col">
-      <div class="mb-2 flex items-center justify-between gap-3">
+    <section id="input-card" class="ps-card flex flex-col">
+      <div class="mb-2 flex flex-wrap items-center justify-between gap-3">
         <h2 class="flex items-center gap-2 text-sm font-semibold text-slate-800">
-          <span class="h-2 w-2 rounded-full bg-rose-400"></span> Raw Input
+          <label for="input" class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-rose-400" aria-hidden="true"></span> Raw Input</label>
         </h2>
-        <span id="in-stats" class="mono text-[11px] text-slate-500">0 chars · 0 words · 0 lines</span>
+        <div class="ps-wrap">
+          <span id="in-stats" class="mono text-[11px] text-slate-500">0 chars · 0 words · 0 lines</span>
+          <button id="btn-open" type="button" class="ps-btn" title="Open a local text, log or config file (read in this tab, never uploaded)">📂 Open file</button>
+          <input id="file-input" type="file" class="sr-only" tabindex="-1" aria-hidden="true"
+                 accept=".txt,.log,.json,.yaml,.yml,.env,.ini,.cfg,.conf,.toml,.xml,.csv,.md,.js,.ts,.py,.sh,.sql,text/*" />
+        </div>
       </div>
       <textarea id="input" spellcheck="false" autocapitalize="off" autocomplete="off" wrap="off"
         class="ps-panel ps-scroll ps-focus w-full flex-1 resize-none rounded-xl border border-slate-200 bg-slate-50/70 p-3 text-[12.5px] leading-relaxed text-slate-800 placeholder-slate-400 transition hover:border-slate-300 focus:bg-white"
-        placeholder="Paste raw logs, code, config files, or prompts here..."></textarea>
+        placeholder="Paste raw logs, code, config files, or prompts here — or drop a file onto this panel."></textarea>
       <p class="mt-2 text-[11px] text-slate-500">Processed locally in this tab. The detector can miss secrets; review before sharing.</p>
     </section>
 
@@ -346,13 +322,13 @@
           <span class="h-2 w-2 rounded-full bg-emerald-400"></span> Sanitized Output
         </h2>
         <div class="ps-wrap">
-          <span id="out-stats" class="mono text-[11px] text-slate-500">0 redactions</span>
+          <span id="out-stats" class="mono text-[11px] text-slate-500" role="status">0 redactions</span>
           <button id="btn-copy" type="button" class="ps-btn ps-btn-primary">📋 Copy Safe Text</button>
         </div>
       </div>
-      <pre id="output" aria-live="polite"
+      <pre id="output" role="region" aria-label="Sanitized output" tabindex="0"
         class="ps-panel ps-scroll w-full flex-1 whitespace-pre-wrap break-words rounded-xl border border-slate-200 bg-slate-50/70 p-3 text-[12.5px] leading-relaxed text-slate-800"></pre>
-      <p id="out-hint" class="mt-2 text-[11px] text-slate-500">Redactions are highlighted in colour — the copied text contains the plain <span class="mono">[REDACTED_*]</span> tokens.</p>
+      <p id="out-hint" class="mt-2 text-[11px] text-slate-500" role="status">Redactions are highlighted in colour — the copied text contains the plain <span class="mono">[REDACTED_*]</span> tokens.</p>
     </section>
 
   </div>
@@ -374,17 +350,17 @@
       <div class="grid gap-3 sm:grid-cols-[1fr_14rem]">
         <label class="block">
           <span class="mb-1 block text-[11px] font-semibold text-slate-500">Custom pattern (JavaScript regular expression)</span>
-          <input id="custom-re" type="text" maxlength="500" spellcheck="false"
+          <input id="custom-re" type="text" maxlength="500" spellcheck="false" autocomplete="off" autocapitalize="off"
             class="ps-focus mono w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-800 placeholder-slate-400"
             placeholder="e.g.  ACME-[0-9]{6}   or   \bsession=[A-Za-z0-9_-]{8,}" />
         </label>
         <label class="block">
           <span class="mb-1 block text-[11px] font-semibold text-slate-500">Replacement token</span>
-          <input id="custom-token" type="text" maxlength="128" spellcheck="false" value="[REDACTED_CUSTOM]"
+          <input id="custom-token" type="text" maxlength="128" spellcheck="false" autocomplete="off" autocapitalize="off" value="[REDACTED_CUSTOM]"
             class="ps-focus mono w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-800" />
         </label>
       </div>
-      <p id="custom-msg" class="mt-2 text-[11px] text-slate-500">Applied live with the <span class="mono">g</span> flag. Invalid patterns are ignored (never thrown).</p>
+      <p id="custom-msg" class="mt-2 text-[11px] text-slate-500" aria-live="polite">Applied live with the <span class="mono">g</span> flag. Use <span class="mono">/pattern/i</span> to add flags. Invalid patterns are ignored.</p>
     </div>
   </section>
 
@@ -435,6 +411,7 @@
       <h2 class="text-sm font-semibold text-slate-800">Reversible Redaction</h2>
       <span class="mono text-[11px] text-slate-500">generate a mapping key to restore redacted text locally</span>
       <div class="ml-auto ps-wrap">
+        <button id="btn-restore-open" type="button" class="ps-btn" aria-controls="restore-result">🔑 Restore from saved key</button>
         <button id="btn-reversible" type="button" class="ps-btn">🔄 Generate Key</button>
       </div>
     </div>
@@ -444,18 +421,20 @@
       <div class="ps-wrap mt-2">
         <button id="btn-copy-key" type="button" class="ps-btn">📋 Copy Key (contains originals)</button>
         <button id="btn-copy-reversible-text" type="button" class="ps-btn">📋 Copy reversible text</button>
-        <button id="btn-restore" type="button" class="ps-btn">🔄 Restore from Key</button>
-      </div>
-      <div id="restore-result" class="mt-2 hidden">
-        <label class="mb-2 block text-[11px] font-semibold text-slate-500">Mapping key JSON (contains originals)
-          <textarea id="restore-key-input" class="ps-focus mono mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-800" rows="4" placeholder="Paste the saved mapping key JSON..."></textarea>
-        </label>
-        <label class="block text-[11px] font-semibold text-slate-500">Text with PromptSafe placeholders
-          <textarea id="restore-input" class="ps-focus mono mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-800" rows="4" placeholder="Paste the matching reversible text..."></textarea>
-        </label>
-        <pre id="restore-output" class="ps-scroll ps-code mono mt-2 max-h-40 overflow-auto p-3 text-[11px]"></pre>
+        <button id="btn-restore" type="button" class="ps-btn">🔄 Restore with this key</button>
       </div>
     </div>
+      <div id="restore-result" class="mt-3 hidden rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+        <label class="mb-2 block text-[11px] font-semibold text-slate-500">Mapping key JSON (contains originals)
+          <textarea id="restore-key-input" spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off" class="ps-focus mono mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-800" rows="4" placeholder="Paste the saved mapping key JSON..."></textarea>
+        </label>
+        <label class="block text-[11px] font-semibold text-slate-500">Text with PromptSafe placeholders
+          <textarea id="restore-input" spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off" class="ps-focus mono mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-800" rows="4" placeholder="Paste the matching reversible text..."></textarea>
+        </label>
+        <pre id="restore-output" class="ps-scroll ps-code mono mt-2 max-h-40 overflow-auto p-3 text-[11px]"></pre>
+        <button id="btn-copy-restored" type="button" class="ps-btn mt-2" disabled>📋 Copy restored text</button>
+        <p id="restore-note" class="mt-1 text-[11px] text-amber-700" aria-live="polite"></p>
+      </div>
   </section>
 
   <!-- ── Templates ── -->
@@ -468,9 +447,10 @@
   </section>
 
   <footer class="mt-6 rounded-xl border border-slate-200 bg-white/70 px-4 py-3 text-[11px] leading-relaxed text-slate-500">
-    <p><b class="font-semibold text-slate-600">PromptSafe v2.1 processes text in this browser tab.</b> First-party processing makes no network requests and stores no input in browser storage. The page loads bundled local assets. A remote host may log the initial page request; regex-based detection can miss secrets, so inspect the output before sharing.</p>
+    <p><b class="font-semibold text-slate-600">PromptSafe v2.2 processes text in this browser tab.</b> First-party processing makes no network requests and stores no input in browser storage. The page loads bundled local assets. A remote host may log the initial page request; regex-based detection can miss secrets, so inspect the output before sharing.</p>
     <p class="mt-1"><a href="https://github.com/xikarzr2026/promptsafe" target="_blank" rel="noopener noreferrer"
        class="font-semibold text-indigo-600 underline underline-offset-2 hover:text-indigo-500">Source on GitHub</a>
+       · <a href="privacy.html" class="font-semibold text-indigo-600 underline underline-offset-2 hover:text-indigo-500">Privacy &amp; data handling</a>
        · MIT licensed · self-host the static files.</p>
   </footer>
 </main>
@@ -591,11 +571,13 @@ open index.html         # macOS</pre>
     </div>
     <div class="ps-scroll px-5 py-4 text-sm text-slate-600">
       <div class="grid gap-2 sm:grid-cols-2">
-        <div class="rounded-lg border border-slate-200 p-3"><kbd class="rounded border border-slate-300 bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-600">Ctrl+Enter</kbd><span class="ml-2 text-[12px]">Scrub text</span></div>
-        <div class="rounded-lg border border-slate-200 p-3"><kbd class="rounded border border-slate-300 bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-600">Ctrl+C</kbd><span class="ml-2 text-[12px]">Copy result</span></div>
-        <div class="rounded-lg border border-slate-200 p-3"><kbd class="rounded border border-slate-300 bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-600">Ctrl+T</kbd><span class="ml-2 text-[12px]">Toggle theme</span></div>
-        <div class="rounded-lg border border-slate-200 p-3"><kbd class="rounded border border-slate-300 bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-600">Esc</kbd><span class="ml-2 text-[12px]">Close modal</span></div>
+        <div class="rounded-lg border border-slate-200 p-3"><kbd class="rounded border border-slate-300 bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-600">Ctrl/⌘+Enter</kbd><span class="ml-2 text-[12px]">Copy safe text</span></div>
+        <div class="rounded-lg border border-slate-200 p-3"><kbd class="rounded border border-slate-300 bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-600">/</kbd><span class="ml-2 text-[12px]">Focus the input</span></div>
+        <div class="rounded-lg border border-slate-200 p-3"><kbd class="rounded border border-slate-300 bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-600">T</kbd><span class="ml-2 text-[12px]">Toggle theme</span></div>
+        <div class="rounded-lg border border-slate-200 p-3"><kbd class="rounded border border-slate-300 bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-600">?</kbd><span class="ml-2 text-[12px]">Show this list</span></div>
+        <div class="rounded-lg border border-slate-200 p-3"><kbd class="rounded border border-slate-300 bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-600">Esc</kbd><span class="ml-2 text-[12px]">Close dialog</span></div>
       </div>
+      <p class="mt-3 text-[12px] text-slate-500">Single-key shortcuts work when the cursor is not in a text field. Native keys such as Ctrl+C are never overridden.</p>
     </div>
   </div>
 </div>
@@ -615,6 +597,7 @@ open index.html         # macOS</pre>
         <button id="btn-export-json" type="button" class="ps-btn ps-btn-primary">📥 Export as JSON</button>
         <button id="btn-export-csv" type="button" class="ps-btn">📥 Export as CSV</button>
         <button id="btn-export-text" type="button" class="ps-btn">📥 Export as Text</button>
+        <button id="btn-export-safe" type="button" class="ps-btn">📥 Sanitized text (.txt)</button>
       </div>
     </div>
   </div>
@@ -638,6 +621,8 @@ open index.html         # macOS</pre>
      build    optional (match) => {start, end, text}, to redact only
               PART of a match (e.g. keep `password=`, mask the value)
    ──────────────────────────────────────────────────────────────── */
+const PS_VERSION = "2.2.0";
+
 const PS_RULES = [
   {
     id: "keys",
@@ -646,6 +631,9 @@ const PS_RULES = [
     patterns: [
       // PEM private keys (multi-line, must run before line-oriented patterns)
       /-----BEGIN[^-]{0,40}PRIVATE KEY-----[\s\S]*?-----END[^-]{0,40}PRIVATE KEY-----/g,
+      // Truncated PEM (no END line): header, optional Proc-Type/DEK-Info, then base64-only lines.
+      // Body lines carry no spaces, so prose pasted after the key is never swallowed.
+      /-----BEGIN[^-]{0,40}PRIVATE KEY-----(?:\r?\nProc-Type:[^\r\n]*)?(?:\r?\nDEK-Info:[^\r\n]*\r?\n)?(?:\r?\n[A-Za-z0-9+\/=]{8,})+/g,
       // OpenAI  sk-… / sk-proj-… / sk-ant-…
       /\bsk-(?:proj-|live-|test-|ant-)?[A-Za-z0-9_-]{16,}\b/g,
       /\bsk_[A-Za-z0-9]{16,}\b/g,
@@ -656,14 +644,38 @@ const PS_RULES = [
       // GitHub tokens (classic + fine-grained)
       /\bgh[pousr]_[A-Za-z0-9]{30,}\b/g,
       /\bgithub_pat_[A-Za-z0-9_]{20,}\b/g,
-      // Slack tokens
-      /\bxox[baprs]-[A-Za-z0-9-]{10,}\b/g,
+      // GitLab personal / deploy / runner tokens
+      /\bgl(?:pat|dt|rt|ptt|cbt)-[A-Za-z0-9_-]{20,}\b/g,
+      // npm, Hugging Face, PyPI, DigitalOcean, Shopify tokens
+      /\bnpm_[A-Za-z0-9]{36}\b/g,
+      /\bhf_[A-Za-z0-9]{30,}\b/g,
+      /\bpypi-AgEIcHlwaS5vcmc[A-Za-z0-9_-]{50,}/g,
+      /\bdo[pro]_v1_[a-f0-9]{64}\b/g,
+      /\bshp(?:at|ca|pa|ss)_[a-fA-F0-9]{32}\b/g,
+      // Slack tokens and incoming webhooks
+      /\bxox[abeprs]-[A-Za-z0-9-]{10,}\b/g,
+      /\bxapp-\d-[A-Za-z0-9-]{10,}\b/g,
+      /\bhttps:\/\/hooks\.slack\.com\/services\/[A-Za-z0-9/_-]{20,}/g,
+      // Discord webhooks
+      /\bhttps:\/\/(?:canary\.|ptb\.)?discord(?:app)?\.com\/api\/webhooks\/\d+\/[A-Za-z0-9_-]{30,}/g,
+      // SendGrid keys
+      /\bSG\.[A-Za-z0-9_-]{16,32}\.[A-Za-z0-9_-]{16,64}\b/g,
+      // Google OAuth access tokens
+      /\bya29\.[A-Za-z0-9_-]{20,}/g,
       // Stripe keys
       /\b(?:sk|pk|rk)_(?:live|test)_[A-Za-z0-9]{16,}\b/g,
+      /\bwhsec_[A-Za-z0-9]{24,}\b/g,
+      // Mailgun API keys
+      /\bkey-[0-9a-f]{32}\b/g,
       // JSON Web Tokens
       /\beyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\b/g,
-      // HTTP auth headers
-      /\b(?:Bearer|Basic)\s+[A-Za-z0-9._~+/=-]{12,}/g
+      // HTTP auth headers (same line only, so the next log line is never swallowed).
+      // The token needs a digit/symbol or a lower→upper pair, so "Basic authentication" is prose.
+      /\b(?:Bearer|Basic)[ \t]+(?=[A-Za-z0-9._~+/=-]*(?:[0-9._~+/=-]|[a-z][A-Z]))[A-Za-z0-9._~+/=-]{12,}/g,
+      // Azure storage / service-bus account keys inside connection strings
+      /\b(?:AccountKey|SharedAccessKey)=[A-Za-z0-9+/]{20,}={0,2}/g,
+      // Azure SAS signatures: mask only the sig value, keep the URL readable
+      /(?<=[?&]sig=)[A-Za-z0-9%+/=]{16,}/g
     ]
   },
   {
@@ -672,7 +684,9 @@ const PS_RULES = [
     token: "[REDACTED_CONNECTION_STRING]",
     patterns: [
       // Service URIs carry their credentials inline — user:pass@host
-      /\b(?:postgres(?:ql)?|mysql|mariadb|mongodb(?:\+srv)?|redis|amqp|mssql|smtp|ftp|sftp|jdbc:[a-z]+):\/\/[^\s"'`]+/gi
+      /\b(?:postgres(?:ql)?|mysql|mariadb|mongodb(?:\+srv)?|redis|rediss|amqps?|mssql|smtps?|ftps?|sftp|ldaps?|jdbc:[a-z]+):\/\/[^\s"'`]+/gi,
+      // Any other URL that embeds user:password@ credentials
+      /\b[a-z][a-z0-9+.-]{1,20}:\/\/[^\s\/:@"'`]{1,256}:[^\s\/@"'`]{1,256}@[^\s"'`]+/gi
     ]
   },
   {
@@ -684,9 +698,22 @@ const PS_RULES = [
       /\b(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(?:\/\d{1,2})?(?::\d{1,5})?\b/g,
       // IPv6 — canonical form, full and compressed
       /(?<![:.\w])(?:(?:[A-Fa-f0-9]{1,4}:){7}[A-Fa-f0-9]{1,4}|(?:[A-Fa-f0-9]{1,4}:){1,7}:|(?:[A-Fa-f0-9]{1,4}:){1,6}:[A-Fa-f0-9]{1,4}|(?:[A-Fa-f0-9]{1,4}:){1,5}(?::[A-Fa-f0-9]{1,4}){1,2}|(?:[A-Fa-f0-9]{1,4}:){1,4}(?::[A-Fa-f0-9]{1,4}){1,3}|(?:[A-Fa-f0-9]{1,4}:){1,3}(?::[A-Fa-f0-9]{1,4}){1,4}|(?:[A-Fa-f0-9]{1,4}:){1,2}(?::[A-Fa-f0-9]{1,4}){1,5}|[A-Fa-f0-9]{1,4}:(?::[A-Fa-f0-9]{1,4}){1,6}|:(?:(?::[A-Fa-f0-9]{1,4}){1,7}|:))(?![:\w])/g,
-      // Internal hostnames + localhost, with optional port
-      /\b(?:localhost|[\w-]+\.(?:local|internal|lan|corp|home|intranet))(?::\d{1,5})?\b/gi
-    ]
+      // Internal hostnames + localhost, with optional port. The lookbehind (not \b) lets a match
+      // start only at the head of a hostname token, keeping long "a-b-c-…" runs linear-time.
+      /(?<![\w-])(?:localhost|[\w-]+\.(?:local|internal|lan|corp|home|intranet))(?::\d{1,5})?\b/gi
+    ],
+    // Four-part version numbers look like IPv4. Skip a dotted quad when the
+    // context says it is a version: "v1.2.3.4", "version 1.2.3.4", "1.2.3.4-beta",
+    // or a longer dotted run such as "1.2.3.4.5". "root@10.0.0.5" stays masked.
+    filter: function (matched, m) {
+      if (!/^\d{1,3}(?:\.\d{1,3}){3}/.test(matched)) return true;
+      const input = m.input;
+      const before = input.slice(Math.max(0, m.index - 24), m.index);
+      const after = input.slice(m.index + matched.length, m.index + matched.length + 2);
+      if (/[\d.]$/.test(before) || /^\.\d/.test(after) || /^-[A-Za-z]/.test(after)) return false;
+      // Only unambiguous version cues: a missed IP is worse than a masked version.
+      return !/(?:\bv|\b(?:version|ver|release|rev|revision|firmware|fw)\b[ \t:=]*)$/i.test(before);
+    }
   },
   {
     id: "email",
@@ -695,19 +722,27 @@ const PS_RULES = [
     patterns: [
       // Bound local/domain labels and label count to keep malformed input linear-time.
       /(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9-]{1,63}(?:\.[A-Za-z0-9-]{1,63}){0,125}\.[A-Za-z]{2,24}\b/g
-    ]
+    ],
+    // "git@github.com:org/repo.git" is an SSH remote, not a mailbox.
+    filter: function (matched, m) {
+      if (!/^git@/i.test(matched)) return true;
+      const end = m.index + matched.length;
+      return !/^:[\w~.\/-]/.test(m.input.slice(end, end + 2));
+    }
   },
   {
     id: "phone",
     label: "Mask Phone Numbers",
     token: "[REDACTED_PHONE]",
     patterns: [
-      /\+\d{1,3}[\s.-]?(?:\(\d{1,4}\)[\s.-]?)?\d[\d\s.-]{5,}\d/g,   // international, leading +
-      /\(\d{3}\)\s*\d{3}[-.\s]?\d{4}/g,                             // (555) 123-4567
+      // Separators are horizontal only, so a number never runs into the next line.
+      /\+\d{1,3}[ \t.-]?(?:\(\d{1,4}\)[ \t.-]?)?\d[\d \t.-]{5,}\d/g,   // international, leading +
+      /\(\d{3}\)[ \t]*\d{3}[-. \t]?\d{4}/g,                            // (555) 123-4567
       /\b\d{3}[-.]\d{3}[-.]\d{4}\b/g                                // 555-123-4567
     ],
     // Require 10–15 digits so IDs, years and timestamps are not swept up.
     filter: function (match) {
+      if (/^\+\d+\.\d+$/.test(match)) return false;   // a signed decimal such as +3.14159265358979
       const digits = match.replace(/\D/g, "").length;
       return digits >= 10 && digits <= 15;
     }
@@ -718,13 +753,25 @@ const PS_RULES = [
     token: "[REDACTED_SECRET]",
     patterns: [
       // Preserve quotes while covering multiword values; the worker timeout guards custom regexes.
-      /((?:^|[^A-Za-z0-9])(?:aws_secret_access_key|secret_access_key|secret_key|private_key|client_secret|api[_-]?key|apikey|access[_-]?key|access[_-]?token|auth[_-]?token|refresh[_-]?token|db[_-]?password|admin[_-]?password|password|passwd|pwd|passphrase|secret|token)\b["']?\s*(?:=|:|=>|:=)\s*)(["'])((?:\\.|(?!\2)[^\r\n])*?)\2/gi,
-      /((?:^|[^A-Za-z0-9])(?:aws_secret_access_key|secret_access_key|secret_key|private_key|client_secret|api[_-]?key|apikey|access[_-]?key|access[_-]?token|auth[_-]?token|refresh[_-]?token|db[_-]?password|admin[_-]?password|password|passwd|pwd|passphrase|secret|token)\b["']?\s*(?:=|:|=>|:=)\s*)(["']?)([^\s,;"'`]+)\2/gi
+      // The key is any identifier that ENDS in a sensitive word (PGPASSWORD, clientSecret,
+      // csrftoken, SECRET_KEY_BASE), so max_tokens / token_count / tokenizer stay untouched.
+      /((?:^|[^A-Za-z0-9_.$-])[A-Za-z0-9_.$-]*?(?:secret|password|passwd|pwd|passphrase|token|api[_-]?key|apikey|access[_-]?key|private[_-]?key|account[_-]?key)(?:[_-]?(?:key|base)){0,2}["']?\s*(?:=|:|=>|:=)\s*)(["'])((?:\\.|(?!\2)[^\r\n])*?)\2/gi,
+      /((?:^|[^A-Za-z0-9_.$-])[A-Za-z0-9_.$-]*?(?:secret|password|passwd|pwd|passphrase|token|api[_-]?key|apikey|access[_-]?key|private[_-]?key|account[_-]?key)(?:[_-]?(?:key|base)){0,2}["']?\s*(?:=|:|=>|:=)\s*)(["']?)([^\s,;"'`]+)\2/gi
     ],
-    // Never re-redact a token we already wrote: keeps repeat scrubs idempotent.
-    //   OPENAI_API_KEY=[REDACTED_API_KEY]  must not become  ...=[REDACTED_SECRET]
     filter: function (matched, m) {
-      return !/^\[REDACTED_[A-Z_]*\]$/.test(m[3]);
+      // Never re-redact a token we already wrote: keeps repeat scrubs idempotent.
+      //   OPENAI_API_KEY=[REDACTED_API_KEY]  must not become  ...=[REDACTED_SECRET]
+      if (/^\[REDACTED_[A-Z_]*\]$/.test(m[3])) return false;
+      if (m[2]) return true;   // a quoted literal is always masked
+      // Unquoted code references are not secrets; masking them corrupts pasted code:
+      //   password = os.environ["DB_PASSWORD"]   token = getToken();   pw: process.env.PW
+      const v = m[3];
+      if (/^(?:process\.env|os\.environ|import\.meta\.env|ENV|self|this|req|request|args|options|params|settings|config)(?=[.\[])(?:\.[A-Za-z_$][\w$]*)*\[?$/.test(v)) return false;
+      if (/^[A-Za-z_$][\w$.]*\(\)?$/.test(v)) return false;                       // getToken() / os.getenv(
+      if (/^(?:\$\{\{|\{\{|\$\{?[A-Z_][A-Z0-9_]*\}?$|%[A-Z_][A-Z0-9_]*%$)/.test(v)) return false;   // templates, env vars
+      if (/^(?:None|null|nil|undefined|true|false|string|str|String|number|int|bool|boolean|bytes|any|SecretStr|\*+|x{3,}|<[^>]*>)$/.test(v)) return false;
+      // Prose: "The token: is passed on" (a function word after "key: ")
+      return !(/[ \t]$/.test(m[1]) && /^(?:is|are|was|were|be|the|a|an|to|of|for|and|or|not|must|should|will|can|may|has|have|here|below|above)$/i.test(v));
     },
     // Keep the key name and quotes readable, redact only the value:
     //   password = "sample value"   ->   password = "[REDACTED_SECRET]"
@@ -745,13 +792,12 @@ const PS_RULES = [
       /\b(?:you\s+are\s+now|act\s+as|pretend\s+to\s+be|roleplay\s+as|impersonate)\s+(?:a\s+)?(?:different|new|another|evil|jailbroken|unrestricted)\b/gi,
       /\b(?:system\s+prompt|system\s+message)\s*(?:=|:\s*)/gi,
       /\b(?:do\s+not\s+follow|disobey|defy|ignore)\s+(?:your\s+)?(?:programming|training|guidelines|rules|instructions?|constraints?|restrictions?)\b/gi,
-      /\b(?:jailbreak|DAN|do\s+anything\s+now)\b/gi,
+      /\b(?:jailbreak(?:ing|s)?|do\s+anything\s+now)\b/gi,
+      // "DAN" is case-sensitive so the name "Dan" is never flagged.
+      /\bDAN\b/g,
       /\b(?:reveal|show|print|output|leak|expose)\s+(?:your\s+)?(?:system\s+prompt|hidden\s+prompt|initial\s+prompt|secret\s+prompt)\b/gi,
       /\b(?:new\s+instructions?|updated\s+instructions?|new\s+rules?|updated\s+rules?|new\s+guidelines?|updated\s+guidelines?)\s*(?:=|:\s*)/gi
-    ],
-    filter: function (matched, m) {
-      return !/^\[REDACTED_[A-Z_]*\]$/.test(m[0]);
-    }
+    ]
   },
   {
     id: "custom",
@@ -761,8 +807,46 @@ const PS_RULES = [
   }
 ];
 
-/* ── Find every redaction range in `text` for the enabled rule ids. ── */
+/* ── ANSI colour/control sequences; shared by PS_scan and PS_compress. ── */
+const PS_ANSI_RE = /\x1b\[[0-9;]*[A-Za-z]/g;
+
+/* ── `text` without ANSI codes, plus a map from its offsets back to the
+      original ones; null when there is nothing to strip. ── */
+function PS_ansiShadow(text) {
+  if (text.indexOf("\x1b") === -1) return null;
+  const map = new Int32Array(text.length + 1);
+  const parts = [];
+  let last = 0, n = 0, m;
+  PS_ANSI_RE.lastIndex = 0;
+  while ((m = PS_ANSI_RE.exec(text)) !== null) {
+    parts.push(text.slice(last, m.index));
+    for (let i = last; i < m.index; i++) map[n++] = i;
+    last = m.index + m[0].length;
+  }
+  parts.push(text.slice(last));
+  for (let i = last; i < text.length; i++) map[n++] = i;
+  map[n] = text.length;
+  return { text: parts.join(""), map: map };
+}
+
+/* ── Map ranges found in a shadow back to the original text. ANSI codes
+      inside a range are swallowed by its token; all others are kept. ── */
+function PS_remapRanges(ranges, map) {
+  return ranges.map(function (r) {
+    return { start: map[r.start], end: map[r.end - 1] + 1, text: r.text, rule: r.rule };
+  });
+}
+
+/* ── Find every redaction range in `text`. ANSI codes are ignored while
+      matching, so a colour code inside a key cannot hide it. ── */
 function PS_scan(text, enabledIds) {
+  const shadow = PS_ansiShadow(text);
+  if (!shadow) return PS_scanRaw(text, enabledIds);
+  return PS_remapRanges(PS_scanRaw(shadow.text, enabledIds), shadow.map);
+}
+
+/* ── Find every redaction range in `text` for the enabled rule ids. ── */
+function PS_scanRaw(text, enabledIds) {
   const ranges = [];
 
   for (let r = 0; r < PS_RULES.length; r++) {
@@ -847,6 +931,75 @@ function PS_esc(s) {
   });
 }
 
+/* ── Lossy log cleanup: strip noise first, then drop repeated lines. ── */
+function PS_compress(text) {
+  const cleaned = text
+    // ANSI colour codes first, so they cannot hide a leading timestamp or level.
+    .replace(PS_ANSI_RE, "")
+    // ISO-style timestamps with optional fraction and timezone.
+    .replace(/^([ \t]*)\[?\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:[.,]\d+)?(?:Z|[+-]\d{2}:?\d{2})?\]?[ \t]*/gm, "$1")
+    // Leading log levels only; prose words like "the ERROR" are kept.
+    .replace(/^([ \t]*)\[?(?:DEBUG|INFO|WARN|WARNING|ERROR|TRACE|FATAL)\]?(?::[ \t]*|[ \t]+)/gm, "$1")
+    // Collapse runs of spaces and tabs inside a line (indentation is kept), and trailing whitespace.
+    .replace(/(\S)[ \t]{2,}/g, "$1 ")
+    .replace(/[ \t]+$/gm, "");
+
+  const seen = new Set();
+  const kept = [];
+  const lines = cleaned.split(/\r?\n/);
+  for (let i = 0; i < lines.length; i++) {
+    const key = lines[i].trim();
+    if (!key) {
+      // Keep paragraph breaks, but never more than one blank line in a row.
+      if (kept.length && kept[kept.length - 1].trim() !== "") kept.push("");
+      continue;
+    }
+    if (seen.has(key)) continue;
+    seen.add(key);
+    kept.push(lines[i]);
+  }
+  while (kept.length && kept[kept.length - 1] === "") kept.pop();
+  return kept.join("\n");
+}
+
+/* ── Scrub, compress, scrub again. Pass 1 runs on the raw text so multi-line
+      secrets (PEM blocks) are replaced before line de-duplication can drop
+      their BEGIN/END lines; pass 2 catches secrets that compression re-joined.
+      Pass-2 hits overlapping a redaction token are dropped, so a custom regex
+      cannot redact the tokens. scanFn defaults to PS_scan; if it returns a
+      Promise (the page's worker-backed scan), so does this function. ── */
+function PS_scrubCompress(text, enabledIds, scanFn) {
+  const scan = scanFn || PS_scan;
+  const then = function (v, f) { return v && typeof v.then === "function" ? v.then(f) : f(v); };
+  return then(scan(text, enabledIds), function (first) {
+    const scrubbed = PS_apply(text, first).plain;
+    const compressed = PS_compress(scrubbed);
+    return then(compressed ? scan(compressed, enabledIds) : [], function (raw) {
+      const guarded = [];
+      PS_RULES.forEach(function (rule) {
+        const tok = rule.token;
+        for (let i = compressed.indexOf(tok); i !== -1; i = compressed.indexOf(tok, i + tok.length)) {
+          guarded.push([i, i + tok.length]);
+        }
+      });
+      const second = raw.filter(function (r) {
+        return !guarded.some(function (g) { return r.start < g[1] && g[0] < r.end; });
+      });
+      const out = PS_apply(compressed, second).plain;
+      return {
+        text: out,
+        firstPass: first,     // offsets into the input text
+        secondPass: second,   // offsets into the compressed text, before pass-2 replacement
+        scrubbed: scrubbed,   // pass-1 output, what would be sent without compression
+        totalRedactions: first.length + second.length,
+        originalLength: text.length,
+        scrubbedLength: scrubbed.length,   // after pass 1, before compression
+        compressedLength: out.length       // final output
+      };
+    });
+  });
+}
+
 /* ── Dump the LIVE engine as readable source (used by both modals). ── */
 function PS_sourceDump() {
   const out = [];
@@ -873,11 +1026,23 @@ function PS_sourceDump() {
 
   out.push("];");
   out.push("");
+  out.push("const PS_ANSI_RE = /" + PS_ANSI_RE.source + "/" + PS_ANSI_RE.flags + ";");
+  out.push("");
+  out.push(PS_ansiShadow.toString());
+  out.push("");
+  out.push(PS_remapRanges.toString());
+  out.push("");
   out.push(PS_scan.toString());
+  out.push("");
+  out.push(PS_scanRaw.toString());
   out.push("");
   out.push(PS_apply.toString());
   out.push("");
   out.push(PS_esc.toString());
+  out.push("");
+  out.push(PS_compress.toString());
+  out.push("");
+  out.push(PS_scrubCompress.toString());
   return out.join("\n");
 }
 
@@ -966,7 +1131,7 @@ function PS_sourceDump() {
 
     if (!raw.trim()) {
       $customMsg.className = "mt-2 text-[11px] text-slate-500";
-      $customMsg.textContent = "Custom patterns run in a worker and are stopped after 1 second.";
+      $customMsg.textContent = "Custom patterns run in a worker and are stopped after 1 second. Use /pattern/i to add flags.";
       return;
     }
     if (raw.length > 500) {
@@ -974,10 +1139,23 @@ function PS_sourceDump() {
       $customMsg.textContent = "✕ pattern is too long (maximum 500 characters)";
       return;
     }
+    // Accept either a bare pattern or /pattern/flags literal syntax.
+    let source = raw;
+    let flags = "g";
+    const literal = /^\/([\s\S]+)\/([a-z]*)$/.exec(raw.trim());
+    if (literal) {
+      if (/[^imsu]/.test(literal[2].replace(/g/g, ""))) {
+        $customMsg.className = "mt-2 text-[11px] font-semibold text-rose-600";
+        $customMsg.textContent = "✕ unsupported flag — use only i, m, s or u (g is always on)";
+        return;
+      }
+      source = literal[1];
+      flags = "g" + literal[2].replace(/g/g, "");
+    }
     try {
-      customRule.patterns = [new RegExp(raw, "g")];
+      customRule.patterns = [new RegExp(source, flags)];
       $customMsg.className = "mt-2 text-[11px] font-semibold text-emerald-600";
-      $customMsg.textContent = "✓ valid pattern — isolated worker with a 1-second timeout";
+      $customMsg.textContent = "✓ valid pattern (flags: " + flags + ") — isolated worker with a 1-second timeout";
     } catch (err) {
       $customMsg.className = "mt-2 text-[11px] font-semibold text-rose-600";
       $customMsg.textContent = "✕ invalid regex — ignored (" + err.message + ")";
@@ -994,10 +1172,6 @@ function PS_sourceDump() {
     document.getElementById("injection-list").textContent = "";
     document.getElementById("reversible-result").classList.add("hidden");
     document.getElementById("reversible-key").textContent = "";
-    document.getElementById("restore-result").classList.add("hidden");
-    document.getElementById("restore-key-input").value = "";
-    document.getElementById("restore-input").value = "";
-    document.getElementById("restore-output").textContent = "";
     lastMapping = null;
     lastCompressedText = "";
   }
@@ -1005,7 +1179,7 @@ function PS_sourceDump() {
   const customWorkerSource = `self.onmessage = function (event) {
     const data = event.data;
     try {
-      const expression = new RegExp(data.pattern, "g");
+      const expression = new RegExp(data.pattern, data.flags);
       const ranges = [];
       let match;
       while ((match = expression.exec(data.text)) !== null) {
@@ -1050,7 +1224,7 @@ function PS_sourceDump() {
           finish();
           reject(new Error("Custom regex worker failed."));
         };
-        worker.postMessage({ text: text, pattern: expression.source, token: token });
+        worker.postMessage({ text: text, pattern: expression.source, flags: expression.flags, token: token });
       } catch (_) {
         finish();
         reject(new Error("Could not start the custom regex worker."));
@@ -1077,13 +1251,15 @@ function PS_sourceDump() {
     const ranges = PS_scan(text, builtInIds);
     const expression = customRule.patterns[0];
     if (!ids.has("custom") || !expression) return ranges;
-    const customRanges = await scanCustomInWorker(text, expression, customRule.token);
-    return mergeRanges(ranges, customRanges);
+    // The custom regex sees the same ANSI-free shadow as the built-in rules.
+    const shadow = PS_ansiShadow(text);
+    const customRanges = await scanCustomInWorker(shadow ? shadow.text : text, expression, customRule.token);
+    return mergeRanges(ranges, shadow ? PS_remapRanges(customRanges, shadow.map) : customRanges);
   }
 
   function liveSourceDump() {
-    return PS_sourceDump() + "\\n\\n// Custom-regex worker source (terminated after 1 second)\\n" +
-      customWorkerSource + "\\n\\n" + scanCustomInWorker.toString() + "\\n\\n" + scanText.toString();
+    return PS_sourceDump() + "\n\n// Custom-regex worker source (terminated after 1 second)\n" +
+      customWorkerSource + "\n\n" + scanCustomInWorker.toString() + "\n\n" + scanText.toString();
   }
 
   /* ── Count + render. ── */
@@ -1124,12 +1300,14 @@ function PS_sourceDump() {
 
     const res = PS_apply(text, ranges);
     $output.innerHTML = res.html;
-    $outHint.innerHTML = defaultOutHint;
+    // #out-hint and #out-stats are live regions: only touch them when the text changes.
+    if ($outHint.innerHTML !== defaultOutHint) $outHint.innerHTML = defaultOutHint;
 
     const counts = {};
     ranges.forEach(function (r) { counts[r.rule] = (counts[r.rule] || 0) + 1; });
     const total = ranges.length;
-    $outStats.textContent = total === 1 ? "1 redaction" : total.toLocaleString() + " redactions";
+    const statsText = total === 1 ? "1 redaction" : total.toLocaleString() + " redactions";
+    if ($outStats.textContent !== statsText) $outStats.textContent = statsText;
 
     $report.innerHTML = "";
     if (total === 0) {
@@ -1149,7 +1327,22 @@ function PS_sourceDump() {
   }
 
   /* Huge pastes (multi-MB logs) get coalesced so typing never stalls. */
+  // A custom regex needs a fresh worker per scan, so while one is active the
+  // scan waits for a short pause in typing instead of spawning a worker per key.
+  const CUSTOM_DEBOUNCE_MS = 250;
+  let customTimer = null;
+
+  function customActive() {
+    return enabled.has("custom") && customRule.patterns.length > 0;
+  }
+
   function schedule() {
+    if (customActive()) {
+      clearTimeout(customTimer);
+      $outStats.textContent = "scanning…";
+      customTimer = setTimeout(function () { customTimer = null; render(); }, CUSTOM_DEBOUNCE_MS);
+      return;
+    }
     if (pending) return;
     if ($input.value.length > 120000) {
       pending = setTimeout(function () { pending = null; render(); }, 40);
@@ -1159,9 +1352,17 @@ function PS_sourceDump() {
     }
   }
 
+  function onCustomInput() {
+    compileCustom();
+    // Changing the pattern invalidates the old output: block copying until the
+    // debounced scan with the new pattern finishes.
+    $copy.disabled = true;
+    schedule();
+  }
+
   $input.addEventListener("input", schedule);
-  $customRe.addEventListener("input", function () { compileCustom(); render(); });
-  $customTok.addEventListener("input", function () { compileCustom(); render(); });
+  $customRe.addEventListener("input", onCustomInput);
+  $customTok.addEventListener("input", onCustomInput);
 
   /* ── Buttons ── */
   document.getElementById("btn-all").addEventListener("click", function () {
@@ -1181,13 +1382,81 @@ function PS_sourceDump() {
     $customTok.value = "[REDACTED_CUSTOM]";
     compileCustom();
     clearDerivedState();
+    // Restore fields are user-pasted, not derived from the input, so only Clear All wipes them.
+    $restoreResult.classList.add("hidden");
+    $restoreKeyInput.value = "";
+    $restoreInput.value = "";
+    $restoreOutput.textContent = "";
+    $restoreNote.textContent = "";
+    $copyRestored.disabled = true;
     render();
     $input.focus();
   });
 
-  document.getElementById("btn-sample").addEventListener("click", function () {
-    $input.value = SAMPLE_LOG;
+  // Replacing the input never silently discards something the user typed.
+  function replaceInput(value, what) {
+    const current = $input.value;
+    if (current.trim() && current !== value &&
+        !window.confirm("Replace the current input with " + what + "? Your text will be lost.")) return false;
+    $input.value = value;
     render();
+    $input.focus();
+    $input.setSelectionRange(0, 0);
+    $input.scrollTop = 0;
+    return true;
+  }
+
+  document.getElementById("btn-sample").addEventListener("click", function () {
+    replaceInput(SAMPLE_LOG, "the sample log");
+  });
+
+  /* ── Open a local file (read in this tab with FileReader; nothing is uploaded). ── */
+  const MAX_FILE_BYTES = 10 * 1024 * 1024;
+  const $fileInput = document.getElementById("file-input");
+  const $inputCard = document.getElementById("input-card");
+
+  function loadFile(file) {
+    if (!file) return;
+    if (file.size > MAX_FILE_BYTES) {
+      $outHint.textContent = "That file is larger than 10 MB. Split it into smaller pieces first.";
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = function () {
+      const text = String(reader.result || "");
+      if (text.indexOf(String.fromCharCode(0)) !== -1) {
+        $outHint.textContent = "That looks like a binary file. Open a text, log or config file instead.";
+        return;
+      }
+      replaceInput(text, "the contents of " + file.name);
+    };
+    reader.onerror = function () { $outHint.textContent = "The file could not be read."; };
+    reader.readAsText(file);
+  }
+
+  document.getElementById("btn-open").addEventListener("click", function () { $fileInput.click(); });
+  $fileInput.addEventListener("change", function () {
+    loadFile($fileInput.files && $fileInput.files[0]);
+    $fileInput.value = "";
+  });
+  ["dragenter", "dragover"].forEach(function (type) {
+    $inputCard.addEventListener(type, function (e) {
+      if (!e.dataTransfer || Array.from(e.dataTransfer.types || []).indexOf("Files") === -1) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "copy";
+      $inputCard.classList.add("ps-drop");
+    });
+  });
+  ["dragleave", "dragend"].forEach(function (type) {
+    $inputCard.addEventListener(type, function (e) {
+      if (e.target === $inputCard || !$inputCard.contains(e.relatedTarget)) $inputCard.classList.remove("ps-drop");
+    });
+  });
+  $inputCard.addEventListener("drop", function (e) {
+    $inputCard.classList.remove("ps-drop");
+    if (!e.dataTransfer || !e.dataTransfer.files || !e.dataTransfer.files.length) return;
+    e.preventDefault();
+    loadFile(e.dataTransfer.files[0]);
   });
 
   /* ── Copy (Clipboard API with a legacy fallback). ── */
@@ -1234,8 +1503,42 @@ function PS_sourceDump() {
   }
 
   /* ── Modals ── */
-  function openModal(el) { el.hidden = false; document.body.style.overflow = "hidden"; }
-  function closeModal(el) { el.hidden = true; document.body.style.overflow = ""; }
+  // Modals move focus inside, trap Tab, and hand focus back to the opener on close.
+  let modalOpener = null;
+  const FOCUSABLE = "button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), summary, [tabindex]:not([tabindex='-1'])";
+
+  function openModal(el) {
+    if (!el.hidden) return;
+    closeAllModals(true);
+    modalOpener = document.activeElement;
+    el.hidden = false;
+    document.body.style.overflow = "hidden";
+    const first = el.querySelector(".ps-dialog [data-close]") || el.querySelector(FOCUSABLE);
+    if (first) first.focus();
+  }
+  function closeModal(el, keepFocus) {
+    if (el.hidden) return;
+    el.hidden = true;
+    if (!document.querySelector(".ps-modal:not([hidden])")) {
+      document.body.style.overflow = "";
+      if (!keepFocus && modalOpener && typeof modalOpener.focus === "function") modalOpener.focus();
+      if (!keepFocus) modalOpener = null;
+    }
+  }
+  function trapFocus(e) {
+    const open = document.querySelector(".ps-modal:not([hidden])");
+    if (!open || e.key !== "Tab") return;
+    const items = Array.from(open.querySelectorAll(FOCUSABLE)).filter(function (n) { return n.offsetParent !== null; });
+    if (!items.length) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (e.shiftKey && (document.activeElement === first || !open.contains(document.activeElement))) {
+      e.preventDefault(); last.focus();
+    } else if (!e.shiftKey && (document.activeElement === last || !open.contains(document.activeElement))) {
+      e.preventDefault(); first.focus();
+    }
+  }
+  document.addEventListener("keydown", trapFocus);
 
   const $trust = document.getElementById("modal-trust");
   const $source = document.getElementById("modal-source");
@@ -1249,18 +1552,12 @@ function PS_sourceDump() {
     openModal($source);
   });
 
-  function closeAllModals() {
-    closeModal($trust); closeModal($source);
-    closeModal(document.getElementById("modal-templates"));
-    closeModal(document.getElementById("modal-shortcuts"));
-    closeModal(document.getElementById("modal-export"));
+  function closeAllModals(keepFocus) {
+    document.querySelectorAll(".ps-modal").forEach(function (m) { closeModal(m, keepFocus === true); });
   }
   document.querySelectorAll("[data-close]").forEach(function (el) {
-    el.addEventListener("click", closeAllModals);
+    el.addEventListener("click", function () { closeAllModals(); });
     el.addEventListener("touchend", function (e) { e.preventDefault(); closeAllModals(); });
-  });
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") { closeAllModals(); }
   });
 
   /* ── First paint ── */
@@ -1278,19 +1575,26 @@ function PS_sourceDump() {
   const themeBtn = document.getElementById("btn-theme");
 
   function setTheme(theme) {
-    if (theme === "dark") {
-      root.setAttribute("data-theme", "dark");
-      themeBtn.textContent = "☀️";
-    } else {
-      root.setAttribute("data-theme", "light");
-      themeBtn.textContent = "🌙";
-    }
+    const dark = theme === "dark";
+    root.setAttribute("data-theme", dark ? "dark" : "light");
+    themeBtn.textContent = dark ? "☀️" : "🌙";
+    themeBtn.setAttribute("aria-label", dark ? "Switch to light theme" : "Switch to dark theme");
+    themeBtn.setAttribute("aria-pressed", dark ? "true" : "false");
   }
 
-  setTheme("light");
+  // Follow the OS theme until the user picks one. The choice is kept in memory
+  // only, because the page promises not to write to browser storage.
+  const systemDark = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+  let themeChosen = false;
+  setTheme(systemDark && systemDark.matches ? "dark" : "light");
+  if (systemDark) {
+    const onSystemTheme = function (e) { if (!themeChosen) setTheme(e.matches ? "dark" : "light"); };
+    if (systemDark.addEventListener) systemDark.addEventListener("change", onSystemTheme);
+    else if (systemDark.addListener) systemDark.addListener(onSystemTheme);
+  }
   themeBtn.addEventListener("click", function () {
-    const current = root.getAttribute("data-theme") === "dark" ? "dark" : "light";
-    setTheme(current === "dark" ? "light" : "dark");
+    themeChosen = true;
+    setTheme(root.getAttribute("data-theme") === "dark" ? "light" : "dark");
   });
 
   /* ── Compression ── */
@@ -1305,45 +1609,15 @@ function PS_sourceDump() {
     return Math.ceil(text.length / 4);
   }
 
-  function compressText(text) {
-    // Remove duplicate lines
-    const lines = text.split("\n");
-    const seen = new Set();
-    const unique = [];
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (trimmed && !seen.has(trimmed)) {
-        seen.add(trimmed);
-        unique.push(line);
-      } else if (!trimmed) {
-        unique.push(line);
-      }
-    }
-
-    // Collapse multiple spaces
-    let result = unique.join("\n").replace(/ {2,}/g, " ");
-
-    // Strip common log timestamps
-    result = result.replace(/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}[.,]?\d*\s*/gm, "");
-
-    // Strip common log level prefixes
-    result = result.replace(/^(\s*)(?:DEBUG|INFO|WARN|ERROR|TRACE|FATAL)\s+/gm, "$1");
-
-    // Strip ANSI escape codes
-    result = result.replace(/\x1b\[[0-9;]*m/g, "");
-
-    return result;
-  }
-
   document.getElementById("btn-compress").addEventListener("click", async function () {
     const text = $input.value;
     if (!text.trim()) return;
 
     try {
-      const ranges = await scanText(text, enabled);
-      const scrubbed = PS_apply(text, ranges).plain;
-      lastCompressedText = compressText(scrubbed);
-      const origTokens = estimateTokens(text);
+      const result = await PS_scrubCompress(text, enabled, scanText);
+      lastCompressedText = result.text;
+      // Compare against the scrubbed text, which is what would otherwise be sent.
+      const origTokens = estimateTokens(result.scrubbed);
       const compTokens = estimateTokens(lastCompressedText);
       const savings = origTokens > 0 ? Math.round((1 - compTokens / origTokens) * 100) : 0;
       $compressOriginal.textContent = origTokens.toLocaleString();
@@ -1409,6 +1683,8 @@ function PS_sourceDump() {
   const $restoreKeyInput = document.getElementById("restore-key-input");
   const $restoreInput = document.getElementById("restore-input");
   const $restoreOutput = document.getElementById("restore-output");
+  const $restoreNote = document.getElementById("restore-note");
+  const $copyRestored = document.getElementById("btn-copy-restored");
 
   document.getElementById("btn-reversible").addEventListener("click", async function () {
     const text = $input.value;
@@ -1470,6 +1746,12 @@ function PS_sourceDump() {
     restoreFromKey();
   });
 
+  // Standalone entry point: never prefills, so a pasted saved key is never overwritten.
+  document.getElementById("btn-restore-open").addEventListener("click", function () {
+    $restoreResult.classList.remove("hidden");
+    $restoreKeyInput.focus();
+  });
+
   function restoreFromKey() {
     try {
       if ($restoreKeyInput.value.length > 5_000_000) throw new Error("Key is too large");
@@ -1479,20 +1761,36 @@ function PS_sourceDump() {
       }
       const entries = Object.entries(key.mapping);
       if (entries.length > 100000 || entries.some(function (entry) {
-        return !entry[1] || typeof entry[1].original !== "string";
+        return !/^\[\[PS_REDACT_[A-Za-z0-9-]+_\d+\]\]$/.test(entry[0]) ||
+          !entry[1] || typeof entry[1].original !== "string";
       })) throw new Error("Invalid mapping");
-      let restored = $restoreInput.value;
-      for (const [placeholder, data] of entries) {
-        restored = restored.split(placeholder).join(data.original);
-      }
+      // One pass over the text: a restored original can never be re-expanded
+      // even if it happens to contain another placeholder.
+      const lookup = new Map(entries.map(function (entry) { return [entry[0], entry[1].original]; }));
+      let missing = 0;
+      const restored = $restoreInput.value.replace(/\[\[PS_REDACT_[A-Za-z0-9-]+_\d+\]\]/g, function (ph) {
+        if (lookup.has(ph)) return lookup.get(ph);
+        missing++;
+        return ph;
+      });
       $restoreOutput.textContent = restored;
+      $copyRestored.disabled = !restored;
+      $restoreNote.textContent = missing
+        ? missing + " placeholder(s) are not in this key and were left unchanged."
+        : "";
+      return;
     } catch (_) {
-      $restoreOutput.textContent = "Enter a valid mapping key JSON and the matching reversible text.";
+      $restoreOutput.textContent = "";
+      $copyRestored.disabled = true;
+      $restoreNote.textContent = "Enter a valid mapping key JSON and the matching reversible text.";
     }
   }
 
   $restoreKeyInput.addEventListener("input", restoreFromKey);
   $restoreInput.addEventListener("input", restoreFromKey);
+  $copyRestored.addEventListener("click", function () {
+    if ($restoreOutput.textContent) copySensitiveKey($restoreOutput.textContent, this, "📋 Copy restored text");
+  });
 
   /* ── Templates ── */
   const PS_TEMPLATES = [
@@ -1527,24 +1825,28 @@ function PS_sourceDump() {
 
   PS_TEMPLATES.forEach(function (tpl) {
     // Modal list item
-    const item = document.createElement("div");
-    item.className = "rounded-lg border border-slate-200 p-3 cursor-pointer transition hover:border-indigo-300 hover:bg-indigo-50/60";
+    const item = document.createElement("button");
+    item.type = "button";
+    item.className = "ps-tpl block w-full rounded-lg border border-slate-200 p-3 text-left cursor-pointer transition hover:border-indigo-300 hover:bg-indigo-50/60";
     item.innerHTML = '<p class="text-[13px] font-semibold text-slate-800">' + PS_esc(tpl.name) + "</p>" +
       '<p class="mt-1 text-[11px] text-slate-500">Click to load template</p>';
     item.addEventListener("click", function () {
-      $input.value = tpl.content;
-      render();
-      closeModal(document.getElementById("modal-templates"));
+      closeModal(document.getElementById("modal-templates"), true);
+      if (!replaceInput(tpl.content, "the " + tpl.name + " template")) {
+        // Declined the replace prompt: return focus to the opener instead of the hidden dialog.
+        modalOpener = null;
+        document.getElementById("btn-templates").focus();
+      }
     });
     $templatesContent.appendChild(item);
 
     // Card grid item
     const card = document.createElement("button");
+    card.type = "button";
     card.className = "ps-btn justify-start";
     card.textContent = "📋 " + tpl.name;
     card.addEventListener("click", function () {
-      $input.value = tpl.content;
-      render();
+      replaceInput(tpl.content, "the " + tpl.name + " template");
     });
     $templateList.appendChild(card);
   });
@@ -1554,54 +1856,107 @@ function PS_sourceDump() {
   });
 
   /* ── Export ── */
+  const $exportContent = document.getElementById("export-content");
+  const $exportButtons = ["btn-export-json", "btn-export-csv", "btn-export-text", "btn-export-safe"]
+    .map(function (id) { return document.getElementById(id); });
+
+  // Every export uses the same worker-guarded scan as the on-screen output,
+  // so a slow custom regex can never block the page or leak raw text.
+  async function buildReport() {
+    const text = $input.value;
+    if (!text.trim()) return null;
+    const ranges = await scanText(text, enabled);
+    const counts = {};
+    ranges.forEach(function (r) { counts[r.rule] = (counts[r.rule] || 0) + 1; });
+    return { text: text, ranges: ranges, counts: counts, generated: new Date().toISOString() };
+  }
+
+  function ruleLabel(id) {
+    const rule = PS_RULES.filter(function (r) { return r.id === id; })[0];
+    return rule ? rule.label : id;
+  }
+
+  function csvCell(value) {
+    const s = String(value);
+    return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+
+  async function runExport(kind) {
+    let report;
+    try {
+      report = await buildReport();
+    } catch (_) {
+      $exportContent.textContent = "Export cancelled: the scan did not complete safely. Simplify the custom pattern and try again.";
+      return;
+    }
+    if (!report) return;
+    const stamp = report.generated.replace(/[:.]/g, "-");
+    if (kind === "json") {
+      downloadFile("promptsafe-report-" + stamp + ".json", JSON.stringify({
+        tool: "PromptSafe",
+        version: PS_VERSION,
+        timestamp: report.generated,
+        input_length: report.text.length,
+        total_redactions: report.ranges.length,
+        by_rule: report.counts,
+        rules_active: Array.from(enabled).sort(),
+        redactions: report.ranges.map(function (r) {
+          return { rule: r.rule, token: r.text, start: r.start, end: r.end, length: r.end - r.start };
+        })
+      }, null, 2), "application/json");
+    } else if (kind === "csv") {
+      const rows = [["Rule", "Label", "Token", "Start", "End", "Length"]];
+      report.ranges.forEach(function (r) {
+        rows.push([r.rule, ruleLabel(r.rule), r.text, r.start, r.end, r.end - r.start]);
+      });
+      downloadFile("promptsafe-report-" + stamp + ".csv",
+        rows.map(function (row) { return row.map(csvCell).join(","); }).join("\r\n") + "\r\n", "text/csv");
+    } else if (kind === "text") {
+      let txt = "PromptSafe Redaction Report\n";
+      txt += "Generated: " + report.generated + "\n";
+      txt += "Input length: " + report.text.length.toLocaleString() + " characters\n";
+      txt += "Total redactions: " + report.ranges.length + "\n\n";
+      PS_RULES.forEach(function (rule) {
+        if (report.counts[rule.id]) txt += rule.label + ": " + report.counts[rule.id] + "\n";
+      });
+      txt += "\nThe report lists positions only. It never contains the original values.\n";
+      downloadFile("promptsafe-report-" + stamp + ".txt", txt, "text/plain");
+    } else if (kind === "safe") {
+      downloadFile("promptsafe-sanitized-" + stamp + ".txt", PS_apply(report.text, report.ranges).plain, "text/plain");
+    }
+  }
+
+  async function refreshExportSummary() {
+    const hasText = !!$input.value.trim();
+    $exportButtons.forEach(function (b) { b.disabled = !hasText; });
+    if (!hasText) { $exportContent.textContent = "Paste some text first; there is nothing to export yet."; return; }
+    $exportContent.textContent = "Scanning…";
+    try {
+      const report = await buildReport();
+      $exportContent.textContent = "";
+      const summary = document.createElement("p");
+      summary.className = "text-[13px] font-semibold text-slate-800";
+      summary.textContent = report.ranges.length + (report.ranges.length === 1 ? " redaction" : " redactions") +
+        " in " + report.text.length.toLocaleString() + " characters.";
+      $exportContent.appendChild(summary);
+      const note = document.createElement("p");
+      note.className = "text-[12px] text-slate-500";
+      note.textContent = "Reports contain rule names and positions, never the original values. \"Sanitized text\" downloads the safe output.";
+      $exportContent.appendChild(note);
+    } catch (_) {
+      $exportButtons.forEach(function (b) { b.disabled = true; });
+      $exportContent.textContent = "The scan did not complete safely, so export is disabled. Simplify the custom pattern and try again.";
+    }
+  }
+
   document.getElementById("btn-export").addEventListener("click", function () {
     openModal(document.getElementById("modal-export"));
+    refreshExportSummary();
   });
-
-  document.getElementById("btn-export-json").addEventListener("click", function () {
-    const text = $input.value;
-    if (!text.trim()) return;
-    const ranges = PS_scan(text, enabled);
-    const counts = {};
-    ranges.forEach(function (r) { counts[r.rule] = (counts[r.rule] || 0) + 1; });
-    const report = {
-      timestamp: new Date().toISOString(),
-      input_length: text.length,
-      total_redactions: ranges.length,
-      by_rule: counts,
-      rules_active: Array.from(enabled),
-      redactions: ranges.map(function (r) {
-        return { rule: r.rule, token: r.text, position: r.start };
-      })
-    };
-    downloadFile("promptsafe-report.json", JSON.stringify(report, null, 2), "application/json");
-  });
-
-  document.getElementById("btn-export-csv").addEventListener("click", function () {
-    const text = $input.value;
-    if (!text.trim()) return;
-    const ranges = PS_scan(text, enabled);
-    let csv = "Rule,Token,Position\n";
-    ranges.forEach(function (r) {
-      csv += r.rule + "," + r.text + "," + r.start + "\n";
-    });
-    downloadFile("promptsafe-report.csv", csv, "text/csv");
-  });
-
-  document.getElementById("btn-export-text").addEventListener("click", function () {
-    const text = $input.value;
-    if (!text.trim()) return;
-    const ranges = PS_scan(text, enabled);
-    let txt = "PromptSafe Redaction Report\n";
-    txt += "Generated: " + new Date().toISOString() + "\n";
-    txt += "Total redactions: " + ranges.length + "\n\n";
-    const counts = {};
-    ranges.forEach(function (r) { counts[r.rule] = (counts[r.rule] || 0) + 1; });
-    for (const [rule, count] of Object.entries(counts)) {
-      txt += rule + ": " + count + "\n";
-    }
-    downloadFile("promptsafe-report.txt", txt, "text/plain");
-  });
+  document.getElementById("btn-export-json").addEventListener("click", function () { runExport("json"); });
+  document.getElementById("btn-export-csv").addEventListener("click", function () { runExport("csv"); });
+  document.getElementById("btn-export-text").addEventListener("click", function () { runExport("text"); });
+  document.getElementById("btn-export-safe").addEventListener("click", function () { runExport("safe"); });
 
   function downloadFile(filename, content, type) {
     const blob = new Blob([content], { type: type });
@@ -1612,7 +1967,8 @@ function PS_sourceDump() {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // Revoking synchronously can cancel the download in some browsers.
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
   }
 
   /* ── Keyboard Shortcuts ── */
@@ -1620,25 +1976,25 @@ function PS_sourceDump() {
     openModal(document.getElementById("modal-shortcuts"));
   });
 
+  // Shortcuts never override native browser keys such as Ctrl+C or Ctrl+T.
+  function isTyping(el) {
+    return !!el && (el.tagName === "TEXTAREA" || el.tagName === "INPUT" || el.isContentEditable);
+  }
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") {
-      closeModal(document.getElementById("modal-templates"));
-      closeModal(document.getElementById("modal-shortcuts"));
-      closeModal(document.getElementById("modal-export"));
+      if (document.querySelector(".ps-modal:not([hidden])")) { e.preventDefault(); closeAllModals(); }
       return;
     }
-    if (e.ctrlKey || e.metaKey) {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        render();
-      } else if (e.key === "c" && document.activeElement !== $input) {
-        e.preventDefault();
-        $copy.click();
-      } else if (e.key === "t") {
-        e.preventDefault();
-        themeBtn.click();
-      }
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+      e.preventDefault();
+      if (!$copy.disabled) $copy.click();
+      return;
     }
+    if (e.ctrlKey || e.metaKey || e.altKey || isTyping(document.activeElement)) return;
+    if (document.querySelector(".ps-modal:not([hidden])")) return;
+    if (e.key === "t" || e.key === "T") { e.preventDefault(); themeBtn.click(); }
+    else if (e.key === "/") { e.preventDefault(); $input.focus(); }
+    else if (e.key === "?") { e.preventDefault(); document.getElementById("btn-shortcuts").click(); }
   });
 
   /* ── In-page API for integrations running in this tab ── */
@@ -1655,8 +2011,7 @@ function PS_sourceDump() {
     },
     compress: async function (text) {
       if (typeof text !== "string") throw new TypeError("text must be a string");
-      const ranges = await scanText(text, enabled);
-      return compressText(PS_apply(text, ranges).plain);
+      return (await PS_scrubCompress(text, enabled, scanText)).text;
     },
     detectInjections: function (text) {
       if (typeof text !== "string") throw new TypeError("text must be a string");
@@ -1667,7 +2022,7 @@ function PS_sourceDump() {
         return { id: r.id, label: r.label, token: r.token };
       });
     },
-    version: "2.1.0"
+    version: PS_VERSION
   };
 
   /* ── Optional tool metadata for an external adapter (no MCP transport here) ── */

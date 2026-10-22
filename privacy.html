@@ -10,7 +10,20 @@
 <link rel="stylesheet" href="assets/promptsafe.css" />
 <style>
   body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, sans-serif; }
-  :root { --ps-brand: #6366f1; --ps-brand-2: #8b5cf6; }
+  :root { --ps-brand: #6366f1; --ps-brand-2: #8b5cf6; color-scheme: light dark; }
+  @media (prefers-color-scheme: dark) {
+    body.bg-slate-50 { background: #0f172a; color: #cbd5e1; }
+    .bg-white, .bg-white\/80 { background-color: #1e293b; }
+    .border-slate-200 { border-color: #334155; }
+    .text-slate-900, .text-slate-800 { color: #e2e8f0; }
+    .text-slate-600, .text-slate-700 { color: #cbd5e1; }
+    .text-slate-500, .text-slate-400 { color: #94a3b8; }
+    .bg-emerald-50 { background-color: #022c22; }
+    .border-emerald-200 { border-color: #065f46; }
+    .text-emerald-800 { color: #a7f3d0; }
+    .text-emerald-900\/90 { color: rgba(209,250,229,.9); }
+    .text-indigo-600 { color: #a5b4fc; }
+  }
 </style>
 </head>
 <body class="bg-slate-50 text-slate-700 antialiased">
@@ -23,6 +36,7 @@
         <h1 class="text-lg font-bold text-slate-900">PromptSafe</h1>
         <p class="text-[11px] text-slate-500">Privacy & Compliance</p>
       </div>
+      <a href="index.html" class="ml-auto text-sm font-semibold text-indigo-600 underline underline-offset-2">← Back to the app</a>
     </div>
   </header>
 
@@ -55,7 +69,8 @@
       <div class="mt-4 space-y-3 text-[14px] leading-relaxed text-slate-600">
         <p><strong class="text-slate-800">Static browser app:</strong> The browser interface is static HTML, bundled CSS, and first-party JavaScript. It has no third-party runtime scripts or build-time dependency for normal use.</p>
         <p><strong class="text-slate-800">Optional tools:</strong> The repository also contains a CLI, a separately configured REST server, and a browser extension. They are distinct programs and have separate permissions; do not assume browser-page privacy statements apply to them.</p>
-        <p><strong class="text-slate-800">Storage:</strong> The browser page does not use cookies, local storage, session storage, or IndexedDB. Reversible-redaction keys intentionally contain original values and may be copied to the system clipboard; Clear All removes the in-page key and derived output.</p>
+        <p><strong class="text-slate-800">Storage:</strong> The browser page does not use cookies, local storage, session storage, or IndexedDB. Reversible-redaction keys intentionally contain original values and may be copied to the system clipboard; Clear All removes the in-page key and derived output. Theme choice is kept in memory only and resets on reload.</p>
+        <p><strong class="text-slate-800">Files and exports:</strong> "Open file" and drag-and-drop read the file inside the tab with the browser's FileReader; nothing is uploaded. Exported reports list rule names and positions, never the original values. Exports are created in memory and saved by your browser's normal download flow.</p>
         <p><strong class="text-slate-800">Network:</strong> The browser app makes no outbound HTTP(S) request while processing text. Custom regexes run in an in-memory <code>blob:</code> worker. When hosted, the initial HTML and local static-asset requests go to the hosting provider, which may keep access logs.</p>
         <p><strong class="text-slate-800">Open source:</strong> The complete source code is available on GitHub under the MIT license. You can audit, fork, and self-host the static files.</p>
       </div>
@@ -85,7 +100,7 @@
     </section>
 
     <footer class="text-center text-[12px] text-slate-400 pb-8">
-      <p>PromptSafe v2.1 — local browser text processing</p>
+      <p>PromptSafe v2.2 — local browser text processing</p>
       <p class="mt-1">The browser page has no persistent input store; optional tools are separate.</p>
     </footer>
   </main>

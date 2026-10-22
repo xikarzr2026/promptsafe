@@ -12,16 +12,20 @@
 const http = require("node:http");
 const crypto = require("node:crypto");
 const {
+  PS_VERSION,
   PS_RULES,
   PS_scan,
   PS_apply,
-  compressText
-} = require("./cli.js");
+  PS_scrubCompress
+} = require("./extension/engine.js");
 
 const MAX_BODY_BYTES = 1024 * 1024;
 const BODY_TIMEOUT_MS = 30_000;
-const KNOWN_RULES = new Set(PS_RULES.map(rule => rule.id));
-const DEFAULT_RULES = PS_RULES.filter(rule => rule.id !== "inject").map(rule => rule.id);
+const OVERSIZE_GRACE_MS = 1_000;
+// "custom" has no server-side patterns, so it is not offered over the API.
+const PUBLIC_RULES = PS_RULES.filter(rule => rule.id !== "custom");
+const KNOWN_RULES = new Set(PUBLIC_RULES.map(rule => rule.id));
+const DEFAULT_RULES = PUBLIC_RULES.filter(rule => rule.id !== "inject").map(rule => rule.id);
 
 function sendJson(res, statusCode, payload) {
   if (res.writableEnded) return;
@@ -35,8 +39,8 @@ function sendJson(res, statusCode, payload) {
 
 function safeBearerMatch(header, token) {
   if (!token || typeof header !== "string") return false;
-  const prefix = "Bearer ";
-  if (!header.startsWith(prefix)) return false;
+  const prefix = "bearer "; // the auth scheme name is case-insensitive (RFC 7235)
+  if (header.slice(0, prefix.length).toLowerCase() !== prefix) return false;
   const received = Buffer.from(header.slice(prefix.length), "utf8");
   const expected = Buffer.from(token, "utf8");
   return received.length === expected.length && crypto.timingSafeEqual(received, expected);
@@ -48,30 +52,40 @@ function statusError(statusCode, message) {
   return error;
 }
 
-async function readJsonBody(req, maxBytes) {
-  const contentLength = Number(req.headers["content-length"] || 0);
-  if (Number.isFinite(contentLength) && contentLength > maxBytes) {
-    req.resume();
-    throw statusError(413, "Request body too large");
-  }
-
-  const chunks = [];
-  let size = 0;
-  let tooLarge = false;
-  for await (const chunk of req) {
-    size += chunk.length;
-    if (size > maxBytes) {
-      tooLarge = true;
-      chunks.length = 0;
-      continue; // drain without retaining the remainder
+function readRawBody(req, maxBytes) {
+  return new Promise((resolve, reject) => {
+    const contentLength = Number(req.headers["content-length"] || 0);
+    if (Number.isFinite(contentLength) && contentLength > maxBytes) {
+      reject(statusError(413, "Request body too large"));
+      return;
     }
-    if (!tooLarge) chunks.push(chunk);
-  }
-  if (tooLarge) throw statusError(413, "Request body too large");
+    const chunks = [];
+    let size = 0;
+    let settled = false;
+    const onData = chunk => {
+      size += chunk.length;
+      if (size > maxBytes) {
+        // Stop reading at once; the caller replies 413 and closes the connection.
+        settled = true;
+        req.off("data", onData);
+        req.pause();
+        chunks.length = 0;
+        reject(statusError(413, "Request body too large"));
+        return;
+      }
+      chunks.push(chunk);
+    };
+    req.on("data", onData);
+    req.on("end", () => { if (!settled) { settled = true; resolve(Buffer.concat(chunks)); } });
+    req.on("error", error => { if (!settled) { settled = true; reject(error); } });
+  });
+}
 
+async function readJsonBody(req, maxBytes) {
+  const raw = await readRawBody(req, maxBytes);
   let body;
   try {
-    body = JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}");
+    body = JSON.parse(raw.toString("utf8") || "{}");
   } catch (_) {
     throw statusError(400, "Invalid JSON body");
   }
@@ -87,7 +101,9 @@ function resolveRules(data) {
     throw statusError(400, "rules must be an array of rule IDs");
   }
   const unknown = data.rules.filter(id => !KNOWN_RULES.has(id));
-  if (unknown.length) throw statusError(400, "Unknown rule ID");
+  if (unknown.length) {
+    throw statusError(400, `Unknown rule ID(s): ${unknown.slice(0, 10).map(id => id.slice(0, 40)).join(", ")}`);
+  }
   return new Set(data.rules);
 }
 
@@ -142,7 +158,7 @@ function createServer({
     }
 
     if (pathname === "/health" && req.method === "GET") {
-      sendJson(res, 200, { status: "ok", service: "PromptSafe API", version: "2.1.0" });
+      sendJson(res, 200, { status: "ok", service: "PromptSafe API", version: PS_VERSION });
       return;
     }
 
@@ -167,7 +183,7 @@ function createServer({
         return;
       }
       sendJson(res, 200, {
-        rules: PS_RULES.map(rule => ({ id: rule.id, label: rule.label, token: rule.token })),
+        rules: PUBLIC_RULES.map(rule => ({ id: rule.id, label: rule.label, token: rule.token })),
         default_rules: DEFAULT_RULES
       });
       return;
@@ -201,19 +217,23 @@ function createServer({
         sendJson(res, 200, {
           text: PS_apply(data.text, ranges).plain,
           total_redactions: ranges.length,
-          by_rule: counts
+          by_rule: counts,
+          redactions: ranges.map(range => ({ rule: range.rule, token: range.text, start: range.start, end: range.end }))
         });
         return;
       }
 
       if (pathname === "/api/compress") {
-        const compressed = compressText(PS_apply(data.text, PS_scan(data.text, new Set(DEFAULT_RULES))).plain);
+        // Scrub, compress, re-scrub (one engine helper shared with the CLI and web app).
+        const result = PS_scrubCompress(data.text, resolveRules(data));
         sendJson(res, 200, {
-          text: compressed,
-          original_length: data.text.length,
-          compressed_length: compressed.length,
-          estimated_savings_percent: data.text.length
-            ? Math.round((1 - compressed.length / data.text.length) * 100)
+          text: result.text,
+          total_redactions: result.totalRedactions,
+          original_length: result.originalLength,
+          scrubbed_length: result.scrubbedLength,
+          compressed_length: result.compressedLength,
+          estimated_savings_percent: result.scrubbedLength
+            ? Math.round((1 - result.compressedLength / result.scrubbedLength) * 100)
             : 0
         });
         return;
@@ -223,13 +243,29 @@ function createServer({
         const ranges = PS_scan(data.text, new Set(["inject"]));
         sendJson(res, 200, {
           injections_found: ranges.length,
-          injections: ranges.map(range => ({ rule: range.rule, token: range.text, position: range.start }))
+          injections: ranges.map(range => ({
+            rule: range.rule,
+            token: range.text,
+            start: range.start,
+            position: range.start, // kept for compatibility; same as start
+            end: range.end,
+            match: data.text.slice(range.start, range.end).slice(0, 200)
+          }))
         });
         return;
       }
     } catch (error) {
       if (res.writableEnded) return;
       const statusCode = Number.isInteger(error.statusCode) ? error.statusCode : 500;
+      if (statusCode === 413) {
+        // Do not keep reading an oversized body. Closing the socket while the client is
+        // still sending (including via "Connection: close") resets the connection and the
+        // client loses the 413, so discard the remainder for a short grace period, then close.
+        res.once("finish", () => {
+          req.resume();
+          setTimeout(() => req.destroy(), OVERSIZE_GRACE_MS).unref();
+        });
+      }
       sendJson(res, statusCode, {
         error: statusCode >= 500 ? "Internal server error" : error.message
       });
@@ -245,8 +281,11 @@ function cliOptions(argv) {
   let port = Number(process.env.PORT) || 3000;
   let host = process.env.PROMPTSAFE_HOST || "127.0.0.1";
   for (let i = 0; i < argv.length; i++) {
-    if (argv[i] === "--port" && argv[i + 1]) port = Number(argv[++i]);
-    else if (argv[i] === "--host" && argv[i + 1]) host = argv[++i];
+    if ((argv[i] === "--port" || argv[i] === "--host") && (argv[i + 1] === undefined || argv[i + 1].startsWith("--"))) {
+      throw new Error(`${argv[i]} needs a value`);
+    }
+    if (argv[i] === "--port") port = Number(argv[++i]);
+    else if (argv[i] === "--host") host = argv[++i];
     else if (argv[i] === "--help" || argv[i] === "-h") {
       console.log("Usage: PROMPTSAFE_API_TOKEN=<token> node server.js [--port 3000] [--host 127.0.0.1]");
       return null;
@@ -265,8 +304,20 @@ if (require.main === module) {
     if (!options) process.exitCode = 0;
     else {
       const server = createServer();
+      server.on("error", error => {
+        console.error(error.code === "EADDRINUSE"
+          ? `Port ${options.port} is already in use; pass --port to choose another.`
+          : `Server error: ${error.message}`);
+        process.exitCode = 1;
+      });
+      const shutdown = () => server.close(() => process.exit(0));
+      process.once("SIGINT", shutdown);
+      process.once("SIGTERM", shutdown);
       server.listen(options.port, options.host, () => {
-        console.log(`PromptSafe API listening on http://${options.host}:${options.port}`);
+        console.log(`PromptSafe API v${PS_VERSION} listening on http://${options.host}:${options.port}`);
+        if (!["127.0.0.1", "::1", "localhost"].includes(options.host)) {
+          console.warn("Warning: the API is bound to a non-loopback address and is reachable from the network.");
+        }
         if (typeof process.env.PROMPTSAFE_API_TOKEN !== "string" || process.env.PROMPTSAFE_API_TOKEN.length < 32) {
           console.warn("API routes are disabled until PROMPTSAFE_API_TOKEN is configured with at least 32 characters.");
         }
