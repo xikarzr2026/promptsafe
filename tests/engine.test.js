@@ -446,6 +446,57 @@ test("The live source dump includes every engine function", () => {
   assert(dump.includes("const PS_ANSI_RE ="), "PS_ANSI_RE missing from the source dump");
 });
 
+test("A phone number followed by more digits on the line is still masked", () => {
+  const phone = new Set(["phone"]);
+  assertEqual(scrub("call +1 555 123 4567 2026-10-10 ok", phone), "call [REDACTED_PHONE] 2026-10-10 ok", "Phone before a date leaked");
+  assertEqual(scrub("+44 20 7946 0958\t1700000000", phone), "[REDACTED_PHONE]\t1700000000", "Phone before an ID leaked");
+  assertEqual(scrub("cell +1 555-123-4567 2026-10-10 22:13:51", phone), "cell [REDACTED_PHONE] 2026-10-10 22:13:51", "Country code left behind");
+  assertEqual(scrub("id +12345678901234567890", phone), "id +12345678901234567890", "A long unseparated number is not a phone");
+});
+
+test("An IP followed by a hyphenated host suffix is masked, pre-release versions are not", () => {
+  const network = new Set(["network"]);
+  assertEqual(scrub("ssh root@10.0.0.5-backup", network), "ssh root@[REDACTED_IP]-backup", "IP with a host suffix leaked");
+  assertEqual(scrub("host=10.0.0.5-eth0 up", network), "host=[REDACTED_IP]-eth0 up", "IP with an interface suffix leaked");
+  for (const input of ["pkg 2.0.0.1-beta", "pkg 2.0.0.1-rc1", "pkg 2.0.0.1-SNAPSHOT", "pkg 2.0.0.1-alpha.2"]) {
+    assertEqual(scrub(input, network), input, "Pre-release version masked as an IP");
+  }
+});
+
+test("*_PASS keys are detected, words ending in pass are not", () => {
+  const creds = new Set(["creds"]);
+  assertEqual(scrub("DB_PASS=hunter2secret", creds), "DB_PASS=[REDACTED_SECRET]", "DB_PASS leaked");
+  assertEqual(scrub("SMTP_PASS: 'hunter2 secret'", creds), "SMTP_PASS: '[REDACTED_SECRET]'", "SMTP_PASS leaked");
+  assertEqual(scrub("mail.pass = hunter2secret", creds), "mail.pass = [REDACTED_SECRET]", "mail.pass leaked");
+  for (const input of ["bypass=enabled", "compass: north", "pass=3 fail=0"]) {
+    assertEqual(scrub(input, creds), input, "Non-credential key masked");
+  }
+});
+
+test("Unclosed and backtick-quoted credential values are masked", () => {
+  const creds = new Set(["creds"]);
+  assertEqual(scrub('password="hunter2secret', creds), 'password="[REDACTED_SECRET]', "Unclosed double quote leaked");
+  assertEqual(scrub("token: 'abc def  \nnext line", creds), "token: '[REDACTED_SECRET]  \nnext line", "Unclosed quote leaked or crossed the line");
+  assertEqual(scrub("password=`hunter2secret` ok", creds), "password=`[REDACTED_SECRET]` ok", "Backtick value leaked");
+  assertEqual(scrub('password="it\'s here" tail', creds), 'password="[REDACTED_SECRET]" tail', "Closed quote must still win");
+  const once = scrub('API_KEY="sk-abc123def456ghi789 trailing', new Set(["keys", "creds"]));
+  assertEqual(scrub(once, new Set(["keys", "creds"])), once, "Unclosed-quote scrub is not idempotent");
+});
+
+test("Cookie headers, curl -u and mysql -p passwords are masked", () => {
+  const keys = new Set(["keys"]);
+  assertEqual(scrub("Cookie: session=abcd1234efgh5678; theme=dark\nnext", keys), "Cookie: [REDACTED_API_KEY]\nnext", "Cookie value leaked");
+  assertEqual(scrub("Set-Cookie: sid=abc123; Path=/", keys), "Set-Cookie: [REDACTED_API_KEY]", "Set-Cookie value leaked");
+  assertEqual(scrub("curl -u admin:Hunter2Secret https://x.example.com", keys), "curl -u admin:[REDACTED_API_KEY] https://x.example.com", "curl -u password leaked");
+  assertEqual(scrub("curl --user 'admin:Hunter2Secret' https://x", keys), "curl --user 'admin:[REDACTED_API_KEY]' https://x", "curl --user password leaked");
+  assertEqual(scrub("mysql -u root -pHunter2Secret db", keys), "mysql -u root -p[REDACTED_API_KEY] db", "mysql -p password leaked");
+  assertEqual(scrub("mysql -u root -p db", keys), "mysql -u root -p db", "Bare -p prompt flag must be left alone");
+});
+
+test("Overlapping matches never leave a readable tail", () => {
+  assertEqual(scrub("ops@example.com.internal:8080 up", new Set(["email", "network"])), "[REDACTED_EMAIL] up", "Port left behind an email+hostname overlap");
+});
+
 // ─── Report ───────────────────────────────────────────────────────────────
 console.log("=".repeat(60));
 console.log("PromptSafe Engine Test Results");

@@ -56,7 +56,13 @@ const PS_RULES = [
       // Azure storage / service-bus account keys inside connection strings
       /\b(?:AccountKey|SharedAccessKey)=[A-Za-z0-9+/]{20,}={0,2}/g,
       // Azure SAS signatures: mask only the sig value, keep the URL readable
-      /(?<=[?&]sig=)[A-Za-z0-9%+/=]{16,}/g
+      /(?<=[?&]sig=)[A-Za-z0-9%+/=]{16,}/g,
+      // Cookie / Set-Cookie header values (session ids): mask the whole value on that line
+      /(?<=^[ \t]*(?:Set-)?Cookie:[ \t]*)[^\s][^\r\n]*/gim,
+      // curl -u user:pass / --user user:pass: mask the password only
+      /(?<=(?:^|\s)(?:-u|--user)[ \t=]+['"]?[^\s:'"]+:)[^\s'"]+/g,
+      // mysql -pSECRET (no space after -p): mask the password only
+      /(?<=\bmysql(?:dump)?\b[^\r\n]{0,200}?\s-p)[^\s'"]+/g
     ]
   },
   {
@@ -90,8 +96,10 @@ const PS_RULES = [
       if (!/^\d{1,3}(?:\.\d{1,3}){3}/.test(matched)) return true;
       const input = m.input;
       const before = input.slice(Math.max(0, m.index - 24), m.index);
-      const after = input.slice(m.index + matched.length, m.index + matched.length + 2);
-      if (/[\d.]$/.test(before) || /^\.\d/.test(after) || /^-[A-Za-z]/.test(after)) return false;
+      const after = input.slice(m.index + matched.length, m.index + matched.length + 12);
+      // Only a pre-release word marks a version; "10.0.0.5-eth0" and "10.0.0.5-backup" are hosts.
+      if (/[\d.]$/.test(before) || /^\.\d/.test(after) ||
+          /^-(?:alpha|beta|rc|pre|preview|dev|snapshot|nightly|canary|build)(?![A-Za-z])/i.test(after)) return false;
       // Only unambiguous version cues: a missed IP is worse than a masked version.
       return !/(?:\bv|\b(?:version|ver|release|rev|revision|firmware|fw)\b[ \t:=]*)$/i.test(before);
     }
@@ -124,8 +132,20 @@ const PS_RULES = [
     // Require 10–15 digits so IDs, years and timestamps are not swept up.
     filter: function (match) {
       if (/^\+\d+\.\d+$/.test(match)) return false;   // a signed decimal such as +3.14159265358979
-      const digits = match.replace(/\D/g, "").length;
-      return digits >= 10 && digits <= 15;
+      return match.replace(/\D/g, "").length >= 10;
+    },
+    // A number followed by more digits on the same line ("+1 555 123 4567 2026-10-10")
+    // over-matches. Trim trailing groups back to 15 digits (whitespace-separated ones
+    // first) rather than dropping the whole match and leaking the number.
+    build: function (m) {
+      const digits = function (s) { return s.replace(/\D/g, "").length; };
+      let s = m[0];
+      [/[ \t]+[\d.-]+$/, /[.-]+\d+$/].forEach(function (tail) {
+        while (digits(s) > 15 && tail.test(s)) s = s.replace(tail, "");
+      });
+      const n = digits(s);
+      if (n < 10 || n > 15) return null;
+      return { start: m.index, end: m.index + s.length, text: "[REDACTED_PHONE]" };
     }
   },
   {
@@ -136,8 +156,12 @@ const PS_RULES = [
       // Preserve quotes while covering multiword values; the worker timeout guards custom regexes.
       // The key is any identifier that ENDS in a sensitive word (PGPASSWORD, clientSecret,
       // csrftoken, SECRET_KEY_BASE), so max_tokens / token_count / tokenizer stay untouched.
-      /((?:^|[^A-Za-z0-9_.$-])[A-Za-z0-9_.$-]*?(?:secret|password|passwd|pwd|passphrase|token|api[_-]?key|apikey|access[_-]?key|private[_-]?key|account[_-]?key)(?:[_-]?(?:key|base)){0,2}["']?\s*(?:=|:|=>|:=)\s*)(["'])((?:\\.|(?!\2)[^\r\n])*?)\2/gi,
-      /((?:^|[^A-Za-z0-9_.$-])[A-Za-z0-9_.$-]*?(?:secret|password|passwd|pwd|passphrase|token|api[_-]?key|apikey|access[_-]?key|private[_-]?key|account[_-]?key)(?:[_-]?(?:key|base)){0,2}["']?\s*(?:=|:|=>|:=)\s*)(["']?)([^\s,;"'`]+)\2/gi
+      /((?:^|[^A-Za-z0-9_.$-])[A-Za-z0-9_.$-]*?(?:secret|password|passwd|pwd|passphrase|(?<=[_.-])pass|token|api[_-]?key|apikey|access[_-]?key|private[_-]?key|account[_-]?key)(?:[_-]?(?:key|base)){0,2}["']?\s*(?:=|:|=>|:=)\s*)(["'])((?:\\.|(?!\2)[^\r\n])*?)\2/gi,
+      /((?:^|[^A-Za-z0-9_.$-])[A-Za-z0-9_.$-]*?(?:secret|password|passwd|pwd|passphrase|(?<=[_.-])pass|token|api[_-]?key|apikey|access[_-]?key|private[_-]?key|account[_-]?key)(?:[_-]?(?:key|base)){0,2}["']?\s*(?:=|:|=>|:=)\s*)(["']?)([^\s,;"'`]+)\2/gi,
+      // An opening quote with no closing quote on the line (truncated paste), or a backtick
+      // literal: mask up to the next quote or the end of the line. Closed quotes are handled
+      // above and win the overlap because their range is at least as long.
+      /((?:^|[^A-Za-z0-9_.$-])[A-Za-z0-9_.$-]*?(?:secret|password|passwd|pwd|passphrase|(?<=[_.-])pass|token|api[_-]?key|apikey|access[_-]?key|private[_-]?key|account[_-]?key)(?:[_-]?(?:key|base)){0,2}["']?\s*(?:=|:|=>|:=)\s*)(["'`])([^\r\n"'`]*[^\s"'`])/gi
     ],
     filter: function (matched, m) {
       // Never re-redact a token we already wrote: keeps repeat scrubs idempotent.
@@ -269,12 +293,16 @@ function PS_scanRaw(text, enabledIds) {
   });
 
   // … then drop anything overlapping an already-accepted range.
+  // A range that starts inside an accepted one but ends later extends it, so the
+  // tail ("ops@example.com.internal:8080" -> ":8080") is never left readable.
   const kept = [];
   let lastEnd = -1;
   for (let i = 0; i < ranges.length; i++) {
     if (ranges[i].start >= lastEnd) {
       kept.push(ranges[i]);
       lastEnd = ranges[i].end;
+    } else if (ranges[i].end > lastEnd) {
+      kept[kept.length - 1].end = lastEnd = ranges[i].end;
     }
   }
   return kept;

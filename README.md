@@ -159,7 +159,7 @@ detection; the scrubber is pattern-based and should be treated as a safety net.
 
 | Check | Reproducible result |
 |---|---|
-| Engine regression cases | 53 cases, incl. a linear-time check on adversarial input |
+| Engine regression cases | 59 cases, incl. a linear-time check on adversarial input |
 | CLI/server/extension integration cases | 41 tests |
 | No storage or network APIs in the page script; secret fields opt out of spellcheck and autofill | checked by `scripts/check-web-security.js` |
 | Page script parses and contains no NUL bytes | checked by `scripts/check-web-security.js` |
@@ -185,6 +185,10 @@ See [docs/review-2026-10-21.md](docs/review-2026-10-21.md) for each finding, its
 - **CLI / server:** `-o` cannot overwrite the input or swallow the next flag; `| head` no longer crashes with exit 1. `/api/detect` returns `start`; `bearer` is accepted case-insensitively; oversized bodies are cut off after a 1 s grace period.
 - **Extension:** toolbar click and <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> now work; the menu appears in iframe editors; email fields get an accurate error. A test keeps the three version numbers in sync.
 - **Tooling:** `update-csp-hash.js` fails when the CSP has no hash token; `build:icons` explains its Node 22+ requirement.
+
+### Unreleased — review (2026-11-09)
+- **Detection:** a phone number followed by more digits on the same line (a date, an ID) is masked instead of leaking whole. An IP with a host suffix (`10.0.0.5-eth0`, `root@10.0.0.5-backup`) is masked; only pre-release words such as `-beta` or `-rc1` mark a version. `DB_PASS=`, `SMTP_PASS:` and other `_PASS` / `.pass` / `-pass` keys are detected. A credential value with an unclosed quote, or in backticks, is masked up to the next quote or the end of the line. `Cookie` / `Set-Cookie` header values, `curl -u user:pass` passwords and `mysql -pSECRET` passwords are masked. When two matches overlap, the combined range is masked, so `ops@example.com.internal:8080` no longer leaves `:8080` readable.
+- **Web app:** a Compress or Generate Key result that finishes after the input has changed is discarded instead of being shown for the old text.
 
 ### v2.2
 - **One engine everywhere:** the CLI and REST server now load the generated `extension/engine.js` instead of a hand-copied engine that had drifted from the web app.
